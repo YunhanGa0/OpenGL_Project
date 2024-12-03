@@ -13,15 +13,27 @@ public class Car {
     static float[] wheelColor = {0.1f, 0.1f, 0.1f, 1.0f}; // 深黑色轮胎
     static float[] wheelCapColor = {0.7f, 0.7f, 0.7f, 1.0f}; // 银色轮毂
     static float[] windowColor = {0.3f, 0.3f, 0.8f, 0.5f}; // 半透明蓝色玻璃
+    static float[] headlightColor = {1.0f, 1.0f, 0.8f, 1.0f}; // 黄色前灯
+    static float[] taillightColor = {1.0f, 0.0f, 0.0f, 1.0f}; // 红色尾灯
+    static float[] bumperColor = {0.2f, 0.2f, 0.2f, 1.0f};    // 深灰色保险杠
+    static float[] spoilerColor = {0.1f, 0.1f, 0.1f, 1.0f};   // 黑色尾翼
 
     private Cube carBody;
     private Cylinder wheel;
     private TexSphere wheelCap;
+    private Cube headlight;
+    private Cube taillight;
+    private Cube bumper;
+    private Cube spoiler;
 
     public Car() {
         carBody = new Cube();
         wheel = new Cylinder();
         wheelCap = new TexSphere();
+        headlight = new Cube();
+        taillight = new Cube();
+        bumper = new Cube();
+        spoiler = new Cube();
     }
 
     public void drawCar(Texture bodyTexture, float scale) {
@@ -93,11 +105,122 @@ public class Car {
             }
             glPopMatrix();
 
+            // 添加前保险杠
+            glPushMatrix();
+            {
+                glTranslatef(2.1f, 0.0f, -0.2f);
+                glScalef(0.2f, 1.0f, 0.3f);
+                setMaterial(bumperColor, 64.0f);
+                bumper.drawCube();
+            }
+            glPopMatrix();
+
+            // 添加后保险杠
+            glPushMatrix();
+            {
+                glTranslatef(-2.1f, 0.0f, -0.2f);
+                glScalef(0.2f, 1.0f, 0.3f);
+                setMaterial(bumperColor, 64.0f);
+                bumper.drawCube();
+            }
+            glPopMatrix();
+
+            // 添加前车灯
+            glPushMatrix();
+            {
+                // ���前灯
+                glPushMatrix();
+                {
+                    glTranslatef(2.0f, 0.4f, 0.0f);
+                    glScalef(0.1f, 0.2f, 0.2f);
+                    setMaterial(headlightColor, 128.0f);
+                    headlight.drawCube();
+                }
+                glPopMatrix();
+
+                // 右前灯
+                glPushMatrix();
+                {
+                    glTranslatef(2.0f, -0.4f, 0.0f);
+                    glScalef(0.1f, 0.2f, 0.2f);
+                    setMaterial(headlightColor, 128.0f);
+                    headlight.drawCube();
+                }
+                glPopMatrix();
+            }
+            glPopMatrix();
+
+            // 添加尾灯
+            glPushMatrix();
+            {
+                // 左尾灯
+                glPushMatrix();
+                {
+                    glTranslatef(-2.0f, 0.4f, 0.0f);
+                    glScalef(0.1f, 0.2f, 0.2f);
+                    setMaterial(taillightColor, 32.0f);
+                    taillight.drawCube();
+                }
+                glPopMatrix();
+
+                // 右尾灯
+                glPushMatrix();
+                {
+                    glTranslatef(-2.0f, -0.4f, 0.0f);
+                    glScalef(0.1f, 0.2f, 0.2f);
+                    setMaterial(taillightColor, 32.0f);
+                    taillight.drawCube();
+                }
+                glPopMatrix();
+            }
+            glPopMatrix();
+
+            // 添加尾翼
+            glPushMatrix();
+            {
+                glTranslatef(-2.0f, 0.0f, 0.5f);
+                glScalef(0.3f, 1.2f, 0.1f);
+                setMaterial(spoilerColor, 16.0f);
+                spoiler.drawCube();
+                
+                // 尾翼支架
+                glPushMatrix();
+                {
+                    glTranslatef(0.0f, 0.0f, -1.5f);
+                    glScalef(1.0f, 0.1f, 3.0f);
+                    spoiler.drawCube();
+                }
+                glPopMatrix();
+            }
+            glPopMatrix();
+
             drawWheels();
             
             glDisable(GL_COLOR_MATERIAL);
         }
         glPopMatrix();
+    }
+
+    // 辅助方法：设置材质
+    private void setMaterial(float[] color, float shininess) {
+        FloatBuffer ambient = BufferUtils.createFloatBuffer(4);
+        ambient.put(new float[]{color[0]*0.3f, color[1]*0.3f, color[2]*0.3f, color[3]}).flip();
+        
+        FloatBuffer diffuse = BufferUtils.createFloatBuffer(4);
+        diffuse.put(color).flip();
+        
+        FloatBuffer specular = BufferUtils.createFloatBuffer(4);
+        specular.put(new float[]{1.0f, 1.0f, 1.0f, color[3]}).flip();
+        
+        FloatBuffer shininessBuffer = BufferUtils.createFloatBuffer(4);
+        shininessBuffer.put(new float[]{shininess, 0.0f, 0.0f, 0.0f}).flip();
+        
+        glMaterial(GL_FRONT, GL_AMBIENT, ambient);
+        glMaterial(GL_FRONT, GL_DIFFUSE, diffuse);
+        glMaterial(GL_FRONT, GL_SPECULAR, specular);
+        glMaterial(GL_FRONT, GL_SHININESS, shininessBuffer);
+        
+        glColor4f(color[0], color[1], color[2], color[3]);
     }
 
     private void drawWheels() {
@@ -118,13 +241,13 @@ public class Car {
         glMaterial(GL_FRONT, GL_SPECULAR, wheelSpecular);
         glMaterial(GL_FRONT, GL_SHININESS, wheelShininess);
         
-        float wheelRadius = 0.3f;
-        float wheelWidth = 0.2f;
+        float wheelRadius = 0.5f;
+        float wheelWidth = 0.1f;
         
-        drawWheel(-1.5f, 0.8f, -0.3f, wheelRadius, wheelWidth);
-        drawWheel(-1.5f, -0.8f, -0.3f, wheelRadius, wheelWidth);
-        drawWheel(1.5f, 0.8f, -0.3f, wheelRadius, wheelWidth);
-        drawWheel(1.5f, -0.8f, -0.3f, wheelRadius, wheelWidth);
+        drawWheel(-1.5f, 0.7f, -0.25f, wheelRadius, wheelWidth);
+        drawWheel(-1.5f, -0.7f, -0.25f, wheelRadius, wheelWidth);
+        drawWheel(1.5f, 0.7f, -0.25f, wheelRadius, wheelWidth);
+        drawWheel(1.5f, -0.7f, -0.25f, wheelRadius, wheelWidth);
     }
 
     private void drawWheel(float x, float y, float z, float radius, float width) {
@@ -140,7 +263,7 @@ public class Car {
             glPushMatrix();
             {
                 glTranslatef(0.0f, 0.0f, width/2);
-                glScalef(0.8f, 0.8f, 0.1f);
+                glScalef(0.7f, 0.7f, 0.1f);
                 
                 FloatBuffer capAmbient = BufferUtils.createFloatBuffer(4);
                 capAmbient.put(new float[]{0.3f, 0.3f, 0.3f, 1.0f}).flip();

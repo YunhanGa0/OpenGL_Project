@@ -43,7 +43,7 @@ public class NascarWindow {
     private static final float TRACK_RADIUS = 250.0f;  // 赛道半径
     private long lastFrameTime;
     private static final float BANKING_ANGLE = (float)Math.PI/24;  // 赛道倾斜角度
-    private static final float CAR_HEIGHT = 18.0f;  // 调整这个值来改变赛车高度
+    private static final float CAR_HEIGHT = -10.0f;  // 调整这个值来改变赛车高度
 
     public void start() throws IOException {
         try {

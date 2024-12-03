@@ -48,59 +48,67 @@ public class Car {
             glPushMatrix();
             {
                 glScalef(2.0f, 1.0f, 0.5f);
-                
-                // 创建并设置材质 - 修正 shininess 缓冲区
-                FloatBuffer ambient = BufferUtils.createFloatBuffer(4);
-                ambient.put(new float[]{0.3f, 0.0f, 0.0f, 1.0f}).flip();
-                
-                FloatBuffer diffuse = BufferUtils.createFloatBuffer(4);
-                diffuse.put(bodyColor).flip();
-                
-                FloatBuffer specular = BufferUtils.createFloatBuffer(4);
-                specular.put(new float[]{1.0f, 1.0f, 1.0f, 1.0f}).flip();
-                
-                // 修正：shininess 需要4个元素的缓冲区
-                FloatBuffer shininess = BufferUtils.createFloatBuffer(4);
-                shininess.put(new float[]{128.0f, 0.0f, 0.0f, 0.0f}).flip();
-                
-                glMaterial(GL_FRONT, GL_AMBIENT, ambient);
-                glMaterial(GL_FRONT, GL_DIFFUSE, diffuse);
-                glMaterial(GL_FRONT, GL_SPECULAR, specular);
-                glMaterial(GL_FRONT, GL_SHININESS, shininess);
-                
-                glColor4f(bodyColor[0], bodyColor[1], bodyColor[2], bodyColor[3]);
+                setMaterial(bodyColor, 128.0f);
                 carBody.drawCube();
             }
             glPopMatrix();
 
-            // 绘制车顶 - 同样修正 shininess 缓冲区
+            // 绘制车顶 - 降低整体位置
             glPushMatrix();
             {
+                // 将z轴位置从0.6f降低到0.5f
                 glTranslatef(0.0f, 0.0f, 0.5f);
-                glScalef(1.2f, 1.0f, 0.4f);
+                glScalef(1.2f, 0.72f, 0.32f);
                 
+                // 绘制前后倾斜的梯形框架
+                glPushMatrix();
+                {
+                    // 绘制前框架（梯形）
+                    glBegin(GL_QUADS);
+                    {
+                        // 设置材质颜色
+                        setMaterial(bodyColor, 128.0f);
+                        
+                        // 前面
+                        glVertex3f(-1.4f, -1.4f, 0.0f);  // 左下
+                        glVertex3f(-1.4f, 1.4f, 0.0f);   // 右下
+                        glVertex3f(-0.8f, 0.8f, 1.4f);   // 右上
+                        glVertex3f(-0.8f, -0.8f, 1.4f);  // 左上
+                        
+                        // 后面
+                        glVertex3f(1.4f, -1.4f, 0.0f);   // 左下
+                        glVertex3f(1.4f, 1.4f, 0.0f);    // 右下
+                        glVertex3f(0.8f, 0.8f, 1.4f);    // 右上
+                        glVertex3f(0.8f, -0.8f, 1.4f);   // 左上
+                        
+                        // 顶面
+                        glVertex3f(-0.8f, -0.8f, 1.4f);  // 左前
+                        glVertex3f(-0.8f, 0.8f, 1.4f);   // 右前
+                        glVertex3f(0.8f, 0.8f, 1.4f);    // 右后
+                        glVertex3f(0.8f, -0.8f, 1.4f);   // 左后
+                        
+                        // 底面
+                        glVertex3f(-1.4f, -1.4f, 0.0f);  // 左前
+                        glVertex3f(-1.4f, 1.4f, 0.0f);   // 右前
+                        glVertex3f(1.4f, 1.4f, 0.0f);    // 右后
+                        glVertex3f(1.4f, -1.4f, 0.0f);   // 左后
+                    }
+                    glEnd();
+                }
+                glPopMatrix();
+                
+                // 绘制主车顶（透明）- 缩小尺寸
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glPushMatrix();
+                {
+                    glTranslatef(0.0f, 0.0f, 0.7f);
+                    glScalef(0.75f, 0.8f, 0.8f);  // 从1.6f, 1.6f, 1.8f缩小
+                    setMaterial(windowColor, 128.0f);
+                    carBody.drawCube();
+                }
+                glPopMatrix();
                 
-                FloatBuffer windowAmbient = BufferUtils.createFloatBuffer(4);
-                windowAmbient.put(new float[]{0.1f, 0.1f, 0.3f, windowColor[3]}).flip();
-                
-                FloatBuffer windowDiffuse = BufferUtils.createFloatBuffer(4);
-                windowDiffuse.put(windowColor).flip();
-                
-                FloatBuffer windowSpecular = BufferUtils.createFloatBuffer(4);
-                windowSpecular.put(new float[]{1.0f, 1.0f, 1.0f, windowColor[3]}).flip();
-                
-                FloatBuffer windowShininess = BufferUtils.createFloatBuffer(4);
-                windowShininess.put(new float[]{128.0f, 0.0f, 0.0f, 0.0f}).flip();
-                
-                glMaterial(GL_FRONT, GL_AMBIENT, windowAmbient);
-                glMaterial(GL_FRONT, GL_DIFFUSE, windowDiffuse);
-                glMaterial(GL_FRONT, GL_SPECULAR, windowSpecular);
-                glMaterial(GL_FRONT, GL_SHININESS, windowShininess);
-                
-                glColor4f(windowColor[0], windowColor[1], windowColor[2], windowColor[3]);
-                carBody.drawCube();
                 glDisable(GL_BLEND);
             }
             glPopMatrix();
@@ -128,7 +136,7 @@ public class Car {
             // 添加前车灯
             glPushMatrix();
             {
-                // ���前灯
+                // 前灯
                 glPushMatrix();
                 {
                     glTranslatef(2.0f, 0.4f, 0.0f);

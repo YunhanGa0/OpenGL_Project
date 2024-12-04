@@ -25,8 +25,10 @@ public class Car {
     private Cube taillight;
     private Cube bumper;
     private Cube spoiler;
+    private float[] carColor;  // 添加颜色属性
 
-    public Car() {
+    public Car(float[] color) {
+        this.carColor = color;
         carBody = new Cube();
         wheel = new Cylinder();
         wheelCap = new TexSphere();
@@ -48,7 +50,7 @@ public class Car {
             glPushMatrix();
             {
                 glScalef(2.0f, 1.0f, 0.5f);
-                setMaterial(bodyColor, 128.0f);
+                setMaterial(carColor, 128.0f);
                 carBody.drawCube();
             }
             glPopMatrix();
@@ -67,7 +69,7 @@ public class Car {
                     glBegin(GL_QUADS);
                     {
                         // 设置材质颜色
-                        setMaterial(bodyColor, 128.0f);
+                        setMaterial(carColor, 128.0f);
                         
                         // 前面
                         glVertex3f(-1.4f, -1.4f, 0.0f);  // 左下

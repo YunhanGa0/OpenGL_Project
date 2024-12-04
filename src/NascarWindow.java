@@ -40,10 +40,34 @@ public class NascarWindow {
     private float[] carAngles;  // 每辆赛车的角度
     private float[] carSpeeds;  // 每辆赛车的速度
     private static final int CAR_COUNT = 4;  // 赛道上的赛车数量
-    private static final float TRACK_RADIUS = 250.0f;  // 赛道半径
+    private static final float TRACK_OUTER_RADIUS = 550.0f;  // 最外圈半径
+    private static final float TRACK_INNER_RADIUS = 300.0f;  // 最内圈半径
+    private static final float BANKING_ANGLE = (float)Math.PI/12;  // 赛道倾斜角度
+    
+    // 为每辆车设置固定的轨道半径和高度
+    private static final float[] CAR_RADII = {
+        320.0f,  // 第1辆车 - 最内圈
+        370.0f,  // 第2辆车
+        430.0f,  // 第3辆车
+        490.0f   // 第4辆车 - 最外圈
+    };
+    
+    private static final float[] CAR_HEIGHTS = {
+        -62.0f,   // 第1辆车 - 最内圈（高度最高）
+        -61.0f,  // 第2辆车
+        -61.0f,  // 第3辆车
+        -60.0f   // 第4辆车 - 最外圈（高度最低）
+    };
+
+    // 定义不同赛车的颜色
+    private static final float[][] CAR_COLORS = {
+        {1.0f, 0.0f, 0.0f, 1.0f},  // 第1辆车 - 红色
+        {0.0f, 0.0f, 1.0f, 1.0f},  // 第2辆车 - 蓝色
+        {0.0f, 1.0f, 0.0f, 1.0f},  // 第3辆车 - 绿色
+        {1.0f, 1.0f, 0.0f, 1.0f}   // 第4辆车 - 黄色
+    };
+
     private long lastFrameTime;
-    private static final float BANKING_ANGLE = (float)Math.PI/24;  // 赛道倾斜角度
-    private static final float CAR_HEIGHT = -10.0f;  // 调整这个值来改变赛车高度
 
     public void start() throws IOException {
         try {
@@ -115,9 +139,9 @@ public class NascarWindow {
 
         // 创建赛车并设置初始位置和速度
         for (int i = 0; i < CAR_COUNT; i++) {
-            cars[i] = new Car();
-            carAngles[i] = (float)(i * (2.0f * Math.PI / CAR_COUNT));  // 均匀分布在赛道上
-            carSpeeds[i] = 1.0f + (float)(Math.random() * 0.5f);  // 随机速度变化
+            cars[i] = new Car(CAR_COLORS[i]);  // 传入对应的颜色
+            carAngles[i] = (float)(i * (2.0f * Math.PI / CAR_COUNT));
+            carSpeeds[i] = 1.0f + (float)(Math.random() * 0.5f);
         }
     }
 
@@ -188,24 +212,24 @@ public class NascarWindow {
             glScalef(zoomLevel, zoomLevel, zoomLevel);
 
             // 绘制赛道
-            track.drawTrack(200.0f, 300.0f, 0.0f, BANKING_ANGLE, 60,
-                          trackTexture, wallTexture, baseTexture);
+            track.drawTrack(TRACK_INNER_RADIUS, TRACK_OUTER_RADIUS, 0.0f, BANKING_ANGLE, 60,
+                      trackTexture, wallTexture, baseTexture);
 
             // 绘制所有赛车
             for (int i = 0; i < CAR_COUNT; i++) {
                 glPushMatrix();
                 {
-                    float[] carPos = cars[i].getPositionOnTrack(TRACK_RADIUS, carAngles[i], BANKING_ANGLE);
+                    // 使用预设的轨道半径和高度
+                    float[] carPos = cars[i].getPositionOnTrack(CAR_RADII[i], carAngles[i], BANKING_ANGLE);
 
-                    // 1. 先移动到赛道上的位置
-                    glTranslatef(carPos[0], carPos[1], carPos[2] + CAR_HEIGHT);
+                    // 1. 先移动到赛道上的位置，使用预设高度
+                    glTranslatef(carPos[0], carPos[1], carPos[2] + CAR_HEIGHTS[i]);
 
                     // 2. 向赛道内侧倾斜
-                    // 根据车辆在赛道上的位置计算倾斜方向
                     float tiltDirection = (float)Math.toDegrees(carAngles[i]) + 90;
-                    glRotatef(tiltDirection, 0.0f, 0.0f, 1.0f);  // 先旋转到正确的方向
-                    glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);  // 使用赛道倾斜角度，负号使其向内倾斜
-                    glRotatef(-tiltDirection, 0.0f, 0.0f, 1.0f); // 恢复原来的方向
+                    glRotatef(tiltDirection, 0.0f, 0.0f, 1.0f);
+                    glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
+                    glRotatef(-tiltDirection, 0.0f, 0.0f, 1.0f);
 
                     // 3. 最后设置车身朝向
                     glRotatef(carPos[3], 0.0f, 0.0f, 1.0f);

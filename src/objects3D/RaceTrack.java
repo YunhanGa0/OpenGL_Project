@@ -191,7 +191,7 @@ public class RaceTrack {
     
     private void drawTrackWalls(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
-        float wallHeight = 10.0f;  // 墙的高度
+        float wallHeight = 20.0f;  // 将墙的高度从10.0f增加到20.0f
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
         glEnable(GL_TEXTURE_2D);

@@ -25,6 +25,9 @@ public class RaceTrack {
         drawTrackSurface(innerRadius, outerRadius, baseHeight + 0.1f, bankingAngle, segments, trackTexture);
         drawTrackWalls(innerRadius, outerRadius, baseHeight, bankingAngle, segments, null);
         drawGround(innerRadius, outerRadius, baseHeight, segments, groundTexture);
+        
+        // 添加换胎站
+        drawPitStop(innerRadius);
     }
     
     private void drawBase(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
@@ -609,5 +612,225 @@ public class RaceTrack {
         FloatBuffer resetDiffuse = BufferUtils.createFloatBuffer(4);
         resetDiffuse.put(new float[] {0.8f, 0.8f, 0.8f, 1.0f}).flip();
         glMaterial(GL_FRONT, GL_DIFFUSE, resetDiffuse);
+    }
+    
+    public void drawPitStop(float innerRadius) {
+        float pitStopSize = 80.0f;  // 增大基础尺寸
+        float pitStopX = 0.0f;
+        float pitStopY = 0.0f;
+        float pitStopZ = 10.0f;  // 确认的地面高度
+        
+        glPushMatrix();
+        {
+            glTranslatef(pitStopX, pitStopY, pitStopZ);
+            
+            // 1. 主体建筑
+            drawPitStopMainBuilding(pitStopSize);
+            
+            // 2. 维修区域
+            drawServiceArea(pitStopSize);
+            
+            // 3. 装饰元素
+            drawPitStopDecorations(pitStopSize);
+        }
+        glPopMatrix();
+    }
+
+    private void drawPitStopMainBuilding(float size) {
+        // 主建筑材质（亮红色金属质感）
+        setMaterial(new float[]{0.9f, 0.1f, 0.1f, 1.0f}, 128.0f, 0.4f);  // 鲜艳的红色
+        
+        // 主体建筑
+        glPushMatrix();
+        {
+            glScalef(size, size * 0.8f, size * 0.4f);
+            drawBox();
+        }
+        glPopMatrix();
+        
+        // 屋顶（深红色）
+        setMaterial(new float[]{0.7f, 0.05f, 0.05f, 1.0f}, 96.0f, 0.3f);  // 较暗的红色
+        glPushMatrix();
+        {
+            glTranslatef(0.0f, 0.0f, (size * 0.4f)-3.5f);
+            glScalef(size * 1.2f, size * 0.9f, size * 0.15f);
+            drawBox();
+        }
+        glPopMatrix();
+    }
+
+    private void drawServiceArea(float size) {
+        // 维修区地板（深灰色）
+        setMaterial(new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 32.0f, 0.1f);
+        glPushMatrix();
+        {
+            glTranslatef(0.0f, size * 0.9f, -8.0f);
+            glScalef(size * 0.8f, size * 0.3f, size * 0.05f);
+            drawBox();
+        }
+        glPopMatrix();
+
+        // 维修设备（黑色）
+        setMaterial(new float[]{0.1f, 0.1f, 0.1f, 1.0f}, 64.0f, 0.1f);
+        for(int i = 0; i < 3; i++) {
+            glPushMatrix();
+            {
+                float xOffset = (i - 1) * (size * 0.3f);
+                glTranslatef(xOffset, size * 0.9f, (size * 0.1f)-8.0f);
+                glScalef(size * 0.1f, size * 0.2f, size * 0.2f);
+                drawBox();
+            }
+            glPopMatrix();
+        }
+
+        // 轮胎架
+        drawTireRack(size);
+    }
+
+    private void drawTireRack(float size) {
+        // 轮胎架（暗红色）
+        setMaterial(new float[]{0.6f, 0.05f, 0.05f, 1.0f}, 96.0f, 0.2f);
+        glPushMatrix();
+        {
+            glTranslatef(-size * 0.8f, size * 0.9f, (size * 0.15f)-10.0f);
+            glScalef(size * 0.1f, size * 0.2f, size * 0.3f);
+            drawBox();
+        }
+        glPopMatrix();
+
+        // 轮胎（纯黑色）
+        setMaterial(new float[]{0.05f, 0.05f, 0.05f, 1.0f}, 16.0f, 0.0f);
+        for(int i = 0; i < 3; i++) {
+            glPushMatrix();
+            {
+                glTranslatef(-size * 0.8f, size * 0.9f, ((i * 0.1f + 0.1f) * size)-10.0f);
+                glRotatef(90, 1, 0, 0);
+                Cylinder tire = new Cylinder();
+                tire.drawCylinder(size * 0.08f, size * 0.05f, 32);
+            }
+            glPopMatrix();
+        }
+    }
+
+    private void drawPitStopDecorations(float size) {
+        // 标志牌（亮红色带发光效果）
+        setMaterial(new float[]{1.0f, 0.1f, 0.1f, 1.0f}, 128.0f, 0.5f);
+        glPushMatrix();
+        {
+            glTranslatef(0.0f, 0.0f, (size * 0.6f)-10.0f);
+            glScalef(size * 0.8f, size * 0.2f, size * 0.1f);
+            drawBox();
+        }
+        glPopMatrix();
+        
+        // 环绕窗户（深灰色半透明）
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        setMaterial(new float[]{0.2f, 0.2f, 0.2f, 0.6f}, 128.0f, 0.1f);
+        
+        float windowHeight = size * 0.2f;  // 窗户带的高度
+        float windowZ = size * 0.25f;      // 窗户的z轴位置
+        float wallThickness = size * 0.02f; // 窗户厚度
+        
+        // 前面的窗户
+        glPushMatrix();
+        {
+            glTranslatef(0.0f, size * 0.4f, windowZ);
+            glScalef(size, wallThickness, windowHeight);
+            drawBox();
+        }
+        glPopMatrix();
+        
+        // 后面的窗户
+        glPushMatrix();
+        {
+            glTranslatef(0.0f, -size * 0.4f, windowZ);
+            glScalef(size, wallThickness, windowHeight);
+            drawBox();
+        }
+        glPopMatrix();
+        
+        // 左侧窗户
+        glPushMatrix();
+        {
+            glTranslatef(-size * 0.5f, 0.0f, windowZ);
+            glScalef(wallThickness, size * 0.8f, windowHeight);
+            drawBox();
+        }
+        glPopMatrix();
+        
+        // 右侧窗户
+        glPushMatrix();
+        {
+            glTranslatef(size * 0.5f, 0.0f, windowZ);
+            glScalef(wallThickness, size * 0.8f, windowHeight);
+            drawBox();
+        }
+        glPopMatrix();
+        
+        // 四个角的连接处（圆角效果）
+        float cornerSize = size * 0.1f;
+        int segments = 16;
+        for(int corner = 0; corner < 4; corner++) {
+            glPushMatrix();
+            {
+                // 计算每个角的位置
+                float xSign = (corner % 2 == 0) ? -1 : 1;
+                float ySign = (corner < 2) ? 1 : -1;
+                glTranslatef(xSign * (size * 0.5f - cornerSize), 
+                            ySign * (size * 0.4f - cornerSize), 
+                            windowZ);
+                
+                // 绘制圆角连接
+                glBegin(GL_QUAD_STRIP);
+                for(int i = 0; i <= segments; i++) {
+                    float angle = (float)(i * Math.PI / 2) / segments;
+                    if(corner == 0) angle += Math.PI;
+                    if(corner == 1) angle += Math.PI * 1.5f;
+                    if(corner == 2) angle += 0;
+                    if(corner == 3) angle += Math.PI * 0.5f;
+                    
+                    float x = (float)Math.cos(angle) * cornerSize;
+                    float y = (float)Math.sin(angle) * cornerSize;
+                    
+                    glVertex3f(x, y, windowHeight/2);
+                    glVertex3f(x, y, -windowHeight/2);
+                }
+                glEnd();
+            }
+            glPopMatrix();
+        }
+        
+        glDisable(GL_BLEND);
+    }
+
+    private void setMaterial(float[] color, float shininess, float emissionIntensity) {
+        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+        matEmission.put(new float[]{
+            color[0] * emissionIntensity, 
+            color[1] * emissionIntensity, 
+            color[2] * emissionIntensity, 
+            color[3]
+        }).flip();
+        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+        
+        FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
+        matAmbient.put(new float[]{
+            color[0] * 0.6f, 
+            color[1] * 0.6f, 
+            color[2] * 0.6f, 
+            color[3]
+        }).flip();
+        glMaterial(GL_FRONT, GL_AMBIENT, matAmbient);
+        
+        FloatBuffer matDiffuse = BufferUtils.createFloatBuffer(4);
+        matDiffuse.put(color).flip();
+        glMaterial(GL_FRONT, GL_DIFFUSE, matDiffuse);
+        
+        FloatBuffer matSpecular = BufferUtils.createFloatBuffer(4);
+        matSpecular.put(new float[]{0.8f, 0.8f, 0.8f, color[3]}).flip();
+        glMaterial(GL_FRONT, GL_SPECULAR, matSpecular);
+        
+        glMaterialf(GL_FRONT, GL_SHININESS, shininess);
     }
 }

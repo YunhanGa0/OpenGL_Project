@@ -256,4 +256,139 @@ public class RaceTrack {
         
         glDisable(GL_TEXTURE_2D);
     }
+    
+    public void drawLightPosts(float trackRadius, float baseHeight, float postHeight) {
+        float postRadius = trackRadius * 1.2f;  // 大灯柱子位置比赛道外圈更远
+        float lightSize = 20.0f;                // 灯具大小
+        
+        // 绘制四根大灯柱子
+        for (int i = 0; i < 4; i++) {
+            float angle = (float)(i * Math.PI / 2);  // 均匀分布在四个角
+            float x = (float)(postRadius * Math.cos(angle));
+            float y = (float)(postRadius * Math.sin(angle));
+            
+            glPushMatrix();
+            {
+                // 绘制柱子
+                glColor3f(0.4f, 0.4f, 0.4f);  // 灰色柱子
+                glTranslatef(x, y, baseHeight);
+                
+                // 绘制垂直的柱子
+                glPushMatrix();
+                {
+                    glScalef(10.0f, 10.0f, postHeight);
+                    drawCylinder(10);
+                }
+                glPopMatrix();
+                
+                // 绘制横臂
+                glPushMatrix();
+                {
+                    glTranslatef(0, 0, postHeight);
+                    glRotatef(-angle * 180.0f / (float)Math.PI, 0, 0, 1);
+                    glRotatef(90, 0, 1, 0);
+                    glScalef(5.0f, 5.0f, 50.0f);
+                    drawCylinder(10);
+                }
+                glPopMatrix();
+                
+                // 绘制灯具外壳
+                glPushMatrix();
+                {
+                    glTranslatef(
+                        -(float)(50.0f * Math.cos(angle)),
+                        -(float)(50.0f * Math.sin(angle)),
+                        postHeight
+                    );
+                    glColor3f(0.3f, 0.3f, 0.3f);  // 深灰色灯具
+                    glScalef(lightSize, lightSize, lightSize);
+                    drawCube();
+                }
+                glPopMatrix();
+            }
+            glPopMatrix();
+        }
+    }
+    
+    private void drawCylinder(int segments) {
+        float angleIncrement = 360.0f / segments;
+        
+        // 绘制圆柱体侧面
+        glBegin(GL_QUAD_STRIP);
+        for (int i = 0; i <= segments; i++) {
+            float angle = (float)Math.toRadians(i * angleIncrement);
+            float x = (float)Math.cos(angle);
+            float y = (float)Math.sin(angle);
+            
+            glNormal3f(x, y, 0);
+            glVertex3f(x, y, 1);
+            glVertex3f(x, y, 0);
+        }
+        glEnd();
+        
+        // 绘制顶面和底面
+        glBegin(GL_TRIANGLE_FAN);
+        glNormal3f(0, 0, 1);
+        glVertex3f(0, 0, 1);
+        for (int i = 0; i <= segments; i++) {
+            float angle = (float)Math.toRadians(i * angleIncrement);
+            glVertex3f((float)Math.cos(angle), (float)Math.sin(angle), 1);
+        }
+        glEnd();
+        
+        glBegin(GL_TRIANGLE_FAN);
+        glNormal3f(0, 0, -1);
+        glVertex3f(0, 0, 0);
+        for (int i = segments; i >= 0; i--) {
+            float angle = (float)Math.toRadians(i * angleIncrement);
+            glVertex3f((float)Math.cos(angle), (float)Math.sin(angle), 0);
+        }
+        glEnd();
+    }
+    
+    private void drawCube() {
+        glBegin(GL_QUADS);
+        // 前面
+        glNormal3f(0, 0, 1);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        
+        // 后面
+        glNormal3f(0, 0, -1);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        
+        // 顶面
+        glNormal3f(0, 1, 0);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        
+        // 底面
+        glNormal3f(0, -1, 0);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        
+        // 右面
+        glNormal3f(1, 0, 0);
+        glVertex3f(0.5f, -0.5f, -0.5f);
+        glVertex3f(0.5f, 0.5f, -0.5f);
+        glVertex3f(0.5f, 0.5f, 0.5f);
+        glVertex3f(0.5f, -0.5f, 0.5f);
+        
+        // 左面
+        glNormal3f(-1, 0, 0);
+        glVertex3f(-0.5f, -0.5f, -0.5f);
+        glVertex3f(-0.5f, -0.5f, 0.5f);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glVertex3f(-0.5f, 0.5f, -0.5f);
+        glEnd();
+    }
 }

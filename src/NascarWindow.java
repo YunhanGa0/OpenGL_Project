@@ -70,6 +70,12 @@ public class NascarWindow {
 
     private long lastFrameTime;
 
+    // 添加光源数组
+    private static final int LIGHT_COUNT = 4;
+    private static final int[] LIGHTS = {
+        GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4
+    };
+
     public void start() throws IOException {
         try {
             Display.setDisplayMode(new DisplayMode(1200, 800));
@@ -128,6 +134,17 @@ public class NascarWindow {
 
         // 初始化赛道
         track = new RaceTrack();
+
+        // 设置环境光和聚光灯的颜色
+        float lightIntensity = 0.8f;
+        FloatBuffer lightColor = BufferUtils.createFloatBuffer(4);
+        lightColor.put(lightIntensity).put(lightIntensity).put(lightIntensity).put(1.0f).flip();
+        
+        for (int i = 0; i < LIGHT_COUNT; i++) {
+            glLight(LIGHTS[i], GL_DIFFUSE, lightColor);
+            glLight(LIGHTS[i], GL_SPECULAR, lightColor);
+            glEnable(LIGHTS[i]);
+        }
     }
 
     private void initCars() throws IOException {
@@ -213,9 +230,39 @@ public class NascarWindow {
             glRotatef(-90, 1.0f, 0.0f, 0.0f);
             glScalef(zoomLevel, zoomLevel, zoomLevel);
 
-            // 绘制赛道
+            // 更新光源位置
+            float postRadius = TRACK_OUTER_RADIUS * 1.2f;
+            float postHeight = 400.0f;
+            
+            for (int i = 0; i < LIGHT_COUNT; i++) {
+                float angle = (float)(i * Math.PI / 2);
+                float x = (float)(postRadius * Math.cos(angle));
+                float y = (float)(postRadius * Math.sin(angle));
+                
+                // 设置光源位置和方向
+                FloatBuffer lightPos = BufferUtils.createFloatBuffer(4);
+                lightPos.put(x).put(y).put(postHeight).put(1.0f).flip();
+                
+                FloatBuffer spotDir = BufferUtils.createFloatBuffer(4);
+                spotDir.put(-x).put(-y).put(-postHeight).put(0.0f).flip();
+                
+                glLight(LIGHTS[i], GL_POSITION, lightPos);
+                glLight(LIGHTS[i], GL_SPOT_DIRECTION, spotDir);
+                
+                // 使用 FloatBuffer 设置聚光灯角度和衰减
+                FloatBuffer spotCutoff = BufferUtils.createFloatBuffer(4);
+                spotCutoff.put(45.0f).put(0.0f).put(0.0f).put(0.0f).flip();
+                glLight(LIGHTS[i], GL_SPOT_CUTOFF, spotCutoff);
+                
+                FloatBuffer spotExponent = BufferUtils.createFloatBuffer(4);
+                spotExponent.put(2.0f).put(0.0f).put(0.0f).put(0.0f).flip();  // 降低衰减指数
+                glLight(LIGHTS[i], GL_SPOT_EXPONENT, spotExponent);
+            }
+            
+            // 绘制赛道和大灯
             track.drawTrack(TRACK_INNER_RADIUS, TRACK_OUTER_RADIUS, 0.0f, BANKING_ANGLE, 60,
-                      trackTexture, wallTexture, baseTexture, groundTexture);
+                          trackTexture, wallTexture, baseTexture, groundTexture);
+            track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, 400.0f);  // 传入新的高度参数
 
             // 绘制所有赛车
             for (int i = 0; i < CAR_COUNT; i++) {

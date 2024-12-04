@@ -17,8 +17,8 @@ public class RaceTrack {
         float trackHeight = height + maxBankHeight;
         
         drawBase(innerRadius, outerRadius, baseHeight, bankingAngle, segments, baseTexture);
-        drawTrackSurface(innerRadius, outerRadius, baseHeight, bankingAngle, segments, trackTexture);
-        drawTrackWalls(innerRadius, outerRadius, baseHeight, bankingAngle, segments, wallTexture);
+        drawTrackSurface(innerRadius, outerRadius, baseHeight + 0.1f, bankingAngle, segments, trackTexture);
+        drawTrackWalls(innerRadius, outerRadius, baseHeight, bankingAngle, segments, null);
         drawGround(innerRadius, outerRadius, baseHeight, segments, groundTexture);
     }
     
@@ -192,13 +192,23 @@ public class RaceTrack {
     
     private void drawTrackWalls(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
-        float wallHeight = 20.0f;  // 将墙的高度从10.0f增加到20.0f
+        float wallHeight = 20.0f;
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
-        glEnable(GL_TEXTURE_2D);
-        texture.bind();
+        // 禁用纹理和光照
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_LIGHTING);
         
-        // 绘制外侧墙
+        // 启用深度测试
+        glEnable(GL_DEPTH_TEST);
+        
+        // 启用混合
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
+        // 先绘制透明玻璃墙，但不写入深度缓冲
+        glDepthMask(false);
+        glColor4f(0.6f, 0.8f, 1.0f, 0.15f);
         glBegin(GL_QUADS);
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
             float x1 = (float) (outerRadius * Math.cos(theta));
@@ -206,26 +216,56 @@ public class RaceTrack {
             float x2 = (float) (outerRadius * Math.cos(theta + incTheta));
             float y2 = (float) (outerRadius * Math.sin(theta + incTheta));
             
-            // 墙面法向量
-            float nx = -(float)Math.cos(theta);
-            float ny = -(float)Math.sin(theta);
-            glNormal3f(nx, ny, 0);
+            glNormal3f(-(float)Math.cos(theta), -(float)Math.sin(theta), 0);
             
-            // 底部顶点
-            glTexCoord2f(theta/(2*(float)Math.PI), 0);
             glVertex3f(x1, y1, maxBankHeight);
-            glTexCoord2f((theta+incTheta)/(2*(float)Math.PI), 0);
             glVertex3f(x2, y2, maxBankHeight);
-            
-            // 顶部顶点
-            glTexCoord2f((theta+incTheta)/(2*(float)Math.PI), 1);
             glVertex3f(x2, y2, maxBankHeight + wallHeight);
-            glTexCoord2f(theta/(2*(float)Math.PI), 1);
             glVertex3f(x1, y1, maxBankHeight + wallHeight);
         }
         glEnd();
         
-        glDisable(GL_TEXTURE_2D);
+        // 恢复深度缓冲写入，为框架线条绘制
+        glDepthMask(true);
+        
+        // 设置线条宽度
+        glLineWidth(2.0f);
+        
+        // 绘制白色框架 - 使用完全不透明的白色
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        
+        // 水平框架线（每隔一定高度）
+        int horizontalDivisions = 4;  // 水平分段数
+        float heightInterval = wallHeight / horizontalDivisions;
+        
+        for (int h = 0; h <= horizontalDivisions; h++) {
+            float currentHeight = maxBankHeight + (h * heightInterval);
+            glBegin(GL_LINE_LOOP);
+            for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
+                float x = (float) (outerRadius * Math.cos(theta));
+                float y = (float) (outerRadius * Math.sin(theta));
+                glVertex3f(x, y, currentHeight);
+            }
+            glEnd();
+        }
+        
+        // 垂直支柱（每隔几个段落）
+        int verticalInterval = 4;  // 每隔4个段落绘制一个支柱
+        for (float theta = 0; theta < 2 * Math.PI; theta += incTheta * verticalInterval) {
+            float x = (float) (outerRadius * Math.cos(theta));
+            float y = (float) (outerRadius * Math.sin(theta));
+            
+            glBegin(GL_LINES);
+            glVertex3f(x, y, maxBankHeight);
+            glVertex3f(x, y, maxBankHeight + wallHeight);
+            glEnd();
+        }
+        
+        // 恢复所有状态
+        glLineWidth(1.0f);
+        glEnable(GL_LIGHTING);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glDisable(GL_BLEND);
     }
     
     private void drawGround(float innerRadius, float outerRadius, float height, int segments, Texture texture) {
@@ -258,19 +298,19 @@ public class RaceTrack {
     }
     
     public void drawLightPosts(float trackRadius, float baseHeight, float postHeight) {
-        float postRadius = trackRadius * 1.2f;  // 大灯柱子位置比赛道外圈更远
-        float lightSize = 20.0f;                // 灯具大小
+        float postRadius = trackRadius * 1.2f;
+        float lightSize = 20.0f;
         
         // 绘制四根大灯柱子
         for (int i = 0; i < 4; i++) {
-            float angle = (float)(i * Math.PI / 2);  // 均匀分布在四个角
+            float angle = (float)(i * Math.PI / 2);
             float x = (float)(postRadius * Math.cos(angle));
             float y = (float)(postRadius * Math.sin(angle));
             
             glPushMatrix();
             {
                 // 绘制柱子
-                glColor3f(0.4f, 0.4f, 0.4f);  // 灰色柱子
+                glColor3f(0.4f, 0.4f, 0.4f);
                 glTranslatef(x, y, baseHeight);
                 
                 // 绘制垂直的柱子
@@ -285,7 +325,8 @@ public class RaceTrack {
                 glPushMatrix();
                 {
                     glTranslatef(0, 0, postHeight);
-                    glRotatef(-angle * 180.0f / (float)Math.PI, 0, 0, 1);
+                    float armAngle = (float)Math.toDegrees(angle);
+                    glRotatef(armAngle + 180, 0, 0, 1);  // 添加180度使横臂朝向内侧
                     glRotatef(90, 0, 1, 0);
                     glScalef(5.0f, 5.0f, 50.0f);
                     drawCylinder(10);
@@ -295,12 +336,13 @@ public class RaceTrack {
                 // 绘制灯具外壳
                 glPushMatrix();
                 {
+                    // 调整灯具位置，使其位于横臂内侧末端
                     glTranslatef(
-                        -(float)(50.0f * Math.cos(angle)),
-                        -(float)(50.0f * Math.sin(angle)),
+                        -(float)(50.0f * Math.cos(angle)),  // 添加负号使其朝向内侧
+                        -(float)(50.0f * Math.sin(angle)),  // 添加负号使其朝向内侧
                         postHeight
                     );
-                    glColor3f(0.3f, 0.3f, 0.3f);  // 深灰色灯具
+                    glColor3f(0.3f, 0.3f, 0.3f);
                     glScalef(lightSize, lightSize, lightSize);
                     drawCube();
                 }

@@ -112,12 +112,14 @@ public class NascarWindow {
         MyArcball.startBall(0, 0, 1200, 800);
         glMatrixMode(GL_MODELVIEW);
 
-        // 设置光照
+        // 注释掉环境光设置
+        /*
         FloatBuffer lightPos = BufferUtils.createFloatBuffer(4);
         lightPos.put(10000f).put(1000f).put(1000).put(0).flip();
         glLight(GL_LIGHT0, GL_POSITION, lightPos);
         glLight(GL_LIGHT0, GL_DIFFUSE, Utils.ConvertForGL(white));
         glEnable(GL_LIGHT0);
+        */
 
         glEnable(GL_LIGHTING);
         glEnable(GL_DEPTH_TEST);
@@ -128,15 +130,14 @@ public class NascarWindow {
 
         // 加载纹理
         trackTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/track.png"));
-        wallTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/wall.png"));
-        baseTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/base.png"));
+        baseTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/base2.png"));
         groundTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/ground.png"));
 
         // 初始化赛道
         track = new RaceTrack();
 
-        // 设置环境光和聚光灯的颜色
-        float lightIntensity = 0.8f;
+        // 设置聚光灯的颜色 - 增加亮度以补偿环境光的缺失
+        float lightIntensity = 1.0f;  // 增加光照强度
         FloatBuffer lightColor = BufferUtils.createFloatBuffer(4);
         lightColor.put(lightIntensity).put(lightIntensity).put(lightIntensity).put(1.0f).flip();
         
@@ -259,10 +260,10 @@ public class NascarWindow {
                 glLight(LIGHTS[i], GL_SPOT_EXPONENT, spotExponent);
             }
             
-            // 绘制赛道和大灯
+            // 绘制赛道和大灯 - 不传递墙面纹理
             track.drawTrack(TRACK_INNER_RADIUS, TRACK_OUTER_RADIUS, 0.0f, BANKING_ANGLE, 60,
-                          trackTexture, wallTexture, baseTexture, groundTexture);
-            track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, 400.0f);  // 传入新的高度参数
+                          trackTexture, null, baseTexture, groundTexture);  // 将wallTexture替换为null
+            track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, postHeight);  // 添加postHeight参数
 
             // 绘制所有赛车
             for (int i = 0; i < CAR_COUNT; i++) {

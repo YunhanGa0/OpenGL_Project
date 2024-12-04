@@ -13,7 +13,7 @@ public class RaceTrack {
     
     private Sphere sphere = new Sphere();  // 添加成员变量
     
-    public void drawTrack(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture trackTexture, Texture wallTexture, Texture baseTexture, Texture groundTexture) {
+    public void drawTrack(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture trackTexture, Texture wallTexture, Texture baseTexture, Texture groundTexture, PitStopColors pitStopColors) {
         // 计算赛道倾斜后的最大高度差
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
@@ -26,10 +26,10 @@ public class RaceTrack {
         drawTrackWalls(innerRadius, outerRadius, baseHeight, bankingAngle, segments, null);
         drawGround(innerRadius, outerRadius, baseHeight, segments, groundTexture);
         
-        // 添加换胎站
-        drawPitStop(innerRadius);
+        // 使用传入的颜色主题
+        drawPitStop(innerRadius, pitStopColors);
         
-        // 在绘制完赛道后，添加内部道路
+        // 添加内部道路
         drawInnerRoad(innerRadius);
     }
     
@@ -316,7 +316,7 @@ public class RaceTrack {
         
         // 设置地面材质
         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
-        matEmission.put(new float[] {0.5f, 0.5f, 0.5f, 1.0f}).flip();  // 增加发光
+        matEmission.put(new float[] {0.5f, 0.5f, 0.5f, 1.0f}).flip();  // 增加光
         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
         
         FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
@@ -617,33 +617,110 @@ public class RaceTrack {
         glMaterial(GL_FRONT, GL_DIFFUSE, resetDiffuse);
     }
     
-    public void drawPitStop(float innerRadius) {
-        float pitStopSize = 80.0f;
-        float pitStopX = 150.0f;
-        float pitStopY = 0.0f;
-        float pitStopZ = 10.0f;
-
-        glPushMatrix();
-        {
-            glTranslatef(pitStopX, pitStopY, pitStopZ);
-            
-            // 1. 主体建筑
-            drawPitStopMainBuilding(pitStopSize);
-            
-            // 2. 维修区域
-            drawServiceArea(pitStopSize);
-            
-            // 3. 装饰元素
-            drawPitStopDecorations(pitStopSize);
+    // 在RaceTrack类中添加一个新的颜色主题结构
+    public static class PitStopColors {
+        public float[] mainColor;      // 主建筑颜色
+        public float[] roofColor;      // 屋顶颜色
+        public float[] serviceColor;   // 维修区颜色
+        public float[] equipmentColor; // 设备颜色
+        public float[] signColor;      // 标志牌颜色
+        public float[] windowColor;    // 窗户颜色
+        
+        public PitStopColors(
+            float[] mainColor,
+            float[] roofColor, 
+            float[] serviceColor,
+            float[] equipmentColor,
+            float[] signColor,
+            float[] windowColor
+        ) {
+            this.mainColor = mainColor;
+            this.roofColor = roofColor;
+            this.serviceColor = serviceColor;
+            this.equipmentColor = equipmentColor;
+            this.signColor = signColor;
+            this.windowColor = windowColor;
         }
-        glPopMatrix();
+        
+        // 默认红色主题
+        public static PitStopColors getDefaultTheme() {
+            return new PitStopColors(
+                new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 鲜红色主建筑
+                new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
+                new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+            );
+        }
+    }
+    
+    // 修改drawPitStop方法
+    public void drawPitStop(float innerRadius, PitStopColors colors) {
+        float pitStopSize = 80.0f;
+        float pitStopX = 150.0f;  // 固定X坐标
+        float pitStopZ = 10.0f;   // 固定Z坐标
+        float spacing = 200.0f;   // 换胎站之间的间距
+        
+        // 定义不同的颜色主题
+        PitStopColors[] themes = {
+            new PitStopColors(              // 红色主题
+                new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 鲜红色主建筑
+                new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
+                new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+            ),
+            new PitStopColors(              // 蓝色主题
+                new float[]{0.0f, 0.5f, 0.8f, 1.0f},  // 蓝色主建筑
+                new float[]{0.0f, 0.0f, 0.6f, 1.0f},  // 深蓝色屋顶
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
+                new float[]{0.0f, 0.5f, 0.8f, 1.0f},  // 亮蓝色标志牌
+                new float[]{0.2f, 0.2f, 0.8f, 0.6f}   // 半透明蓝色窗户
+            ),
+            new PitStopColors(              // 绿色主题
+                new float[]{0.2f, 0.6f, 0.0f, 1.0f},  // 绿色主建筑
+                new float[]{0.0f, 1.0f, 0.0f, 1.0f},  // 深绿色屋顶
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
+                new float[]{0.2f, 0.6f, 0.0f, 1.0f},  // 亮绿色标志牌
+                new float[]{0.2f, 0.8f, 0.2f, 0.6f}   // 半透明绿色窗户
+            ),
+            new PitStopColors(              // 黄色主题
+                new float[]{0.9f, 0.8f, 0.0f, 1.0f},  // 明亮的黄色主建筑
+                new float[]{0.4f, 0.3f, 0.0f, 1.0f},  // 金黄色屋顶
+                new float[]{0.3f, 0.3f, 0.3f, 1.0f},  // 稍亮的灰色维修区
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
+                new float[]{1.0f, 0.9f, 0.0f, 1.0f},  // 明亮的黄色标志牌
+                new float[]{0.9f, 0.8f, 0.2f, 0.6f}   // 半透明金黄色窗户
+            )
+        };
+        
+        // 绘制每个换胎站
+        for (int i = 0; i < themes.length; i++) {
+            float yOffset = (i - (themes.length - 1) / 2.0f) * spacing;  // 计算Y轴偏移，使换胎站居中排列
+            
+            glPushMatrix();
+            {
+                glTranslatef(pitStopX, yOffset, pitStopZ);
+                
+                // 所有换胎站朝向相同方向
+                glRotatef(90, 0.0f, 0.0f, 1.0f);
+                
+                // 使用对应的颜色主题
+                drawPitStopMainBuilding(pitStopSize, themes[i]);
+                drawServiceArea(pitStopSize, themes[i]);
+                drawPitStopDecorations(pitStopSize, themes[i]);
+            }
+            glPopMatrix();
+        }
     }
 
-    private void drawPitStopMainBuilding(float size) {
-        // 主建筑材质（亮红色金属质感）
-        setMaterial(new float[]{0.9f, 0.1f, 0.1f, 1.0f}, 128.0f, 0.4f);  // 鲜艳的红色
-        
-        // 主体建筑
+    private void drawPitStopMainBuilding(float size, PitStopColors colors) {
+        // 主建筑
+        setMaterial(colors.mainColor, 128.0f, 0.4f);
         glPushMatrix();
         {
             glScalef(size, size * 0.8f, size * 0.4f);
@@ -651,8 +728,8 @@ public class RaceTrack {
         }
         glPopMatrix();
         
-        // 屋顶（深红色）
-        setMaterial(new float[]{0.7f, 0.05f, 0.05f, 1.0f}, 96.0f, 0.3f);  // 较暗的红色
+        // 屋顶
+        setMaterial(colors.roofColor, 96.0f, 0.3f);
         glPushMatrix();
         {
             glTranslatef(0.0f, 0.0f, (size * 0.4f)-3.5f);
@@ -662,9 +739,9 @@ public class RaceTrack {
         glPopMatrix();
     }
 
-    private void drawServiceArea(float size) {
-        // 维修区地板（深灰色）
-        setMaterial(new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 32.0f, 0.1f);
+    private void drawServiceArea(float size, PitStopColors colors) {
+        // 维修区地板
+        setMaterial(colors.serviceColor, 32.0f, 0.1f);
         glPushMatrix();
         {
             glTranslatef(0.0f, size * 0.9f, -8.0f);
@@ -673,8 +750,8 @@ public class RaceTrack {
         }
         glPopMatrix();
 
-        // 维修设备（黑色）
-        setMaterial(new float[]{0.1f, 0.1f, 0.1f, 1.0f}, 64.0f, 0.1f);
+        // 维修设备
+        setMaterial(colors.equipmentColor, 64.0f, 0.1f);
         for(int i = 0; i < 3; i++) {
             glPushMatrix();
             {
@@ -686,38 +763,12 @@ public class RaceTrack {
             glPopMatrix();
         }
 
-        // 轮胎架
-        drawTireRack(size);
+        drawTireRack(size, colors);
     }
 
-    private void drawTireRack(float size) {
-        // 轮胎架（暗红色）
-        setMaterial(new float[]{0.6f, 0.05f, 0.05f, 1.0f}, 96.0f, 0.2f);
-        glPushMatrix();
-        {
-            glTranslatef(-size * 0.8f, size * 0.9f, (size * 0.15f)-10.0f);
-            glScalef(size * 0.1f, size * 0.2f, size * 0.3f);
-            drawBox();
-        }
-        glPopMatrix();
-
-        // 轮胎（纯黑色）
-        setMaterial(new float[]{0.05f, 0.05f, 0.05f, 1.0f}, 16.0f, 0.0f);
-        for(int i = 0; i < 3; i++) {
-            glPushMatrix();
-            {
-                glTranslatef(-size * 0.8f, size * 0.9f, ((i * 0.1f + 0.1f) * size)-10.0f);
-                glRotatef(90, 1, 0, 0);
-                Cylinder tire = new Cylinder();
-                tire.drawCylinder(size * 0.08f, size * 0.05f, 32);
-            }
-            glPopMatrix();
-        }
-    }
-
-    private void drawPitStopDecorations(float size) {
+    private void drawPitStopDecorations(float size, PitStopColors colors) {
         // 标志牌（亮红色带发光效果）
-        setMaterial(new float[]{1.0f, 0.1f, 0.1f, 1.0f}, 128.0f, 0.5f);
+        setMaterial(colors.signColor, 128.0f, 0.5f);
         glPushMatrix();
         {
             glTranslatef(0.0f, 0.0f, (size * 0.6f)-10.0f);
@@ -729,7 +780,7 @@ public class RaceTrack {
         // 环绕窗户（深灰色半透明）
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        setMaterial(new float[]{0.2f, 0.2f, 0.2f, 0.6f}, 128.0f, 0.1f);
+        setMaterial(colors.windowColor, 128.0f, 0.1f);
         
         float windowHeight = size * 0.2f;  // 窗户带的高度
         float windowZ = size * 0.25f;      // 窗户的z轴位置
@@ -900,5 +951,51 @@ public class RaceTrack {
             }
         }
         glPopMatrix();
+    }
+
+    private void drawTireRack(float size, PitStopColors colors) {
+        // 轮胎架（使用与主建筑相配的暗色）
+        float[] rackColor = new float[] {
+            colors.mainColor[0] * 0.7f,
+            colors.mainColor[1] * 0.7f,
+            colors.mainColor[2] * 0.7f,
+            colors.mainColor[3]
+        };
+        
+        setMaterial(rackColor, 96.0f, 0.2f);
+        glPushMatrix();
+        {
+            glTranslatef(-size * 0.8f, size * 0.9f, (size * 0.15f)-10.0f);
+            glScalef(size * 0.1f, size * 0.2f, size * 0.3f);
+            drawBox();
+        }
+        glPopMatrix();
+
+        // 轮胎（纯黑色）
+        float[] tireColor = new float[]{0.05f, 0.05f, 0.05f, 1.0f};
+        setMaterial(tireColor, 16.0f, 0.0f);
+        for(int i = 0; i < 3; i++) {
+            glPushMatrix();
+            {
+                glTranslatef(-size * 0.8f, size * 0.9f, ((i * 0.1f + 0.1f) * size)-10.0f);
+                glRotatef(90, 1, 0, 0);
+                Cylinder tire = new Cylinder();
+                tire.drawCylinder(size * 0.08f, size * 0.05f, 32);
+            }
+            glPopMatrix();
+        }
+        
+        // 轮胎中心（使用与主建筑相同的颜色）
+        setMaterial(colors.mainColor, 128.0f, 0.4f);
+        for(int i = 0; i < 3; i++) {
+            glPushMatrix();
+            {
+                glTranslatef(-size * 0.8f, size * 0.9f + size * 0.025f, ((i * 0.1f + 0.1f) * size)-10.0f);
+                glRotatef(90, 1, 0, 0);
+                Cylinder hubcap = new Cylinder();
+                hubcap.drawCylinder(size * 0.02f, size * 0.05f, 16);
+            }
+            glPopMatrix();
+        }
     }
 }

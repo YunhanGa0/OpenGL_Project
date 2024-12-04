@@ -92,6 +92,37 @@ public class NascarWindow {
     private float[][] trackCarAngles;  // 每个赛道上赛车的角度
     private float[][] trackCarSpeeds;  // 每个赛道上赛车的速度
 
+    // 在NascarWindow类的开头添加一些预定义的颜色主题
+    private static final RaceTrack.PitStopColors FERRARI_THEME = new RaceTrack.PitStopColors(
+        new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 法拉利红主建筑
+        new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
+        new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
+        new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
+        new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
+        new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+    );
+
+    private static final RaceTrack.PitStopColors MERCEDES_THEME = new RaceTrack.PitStopColors(
+        new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 奔驰银灰色主建筑
+        new float[]{0.15f, 0.15f, 0.15f, 1.0f}, // 深灰色屋顶
+        new float[]{0.3f, 0.3f, 0.3f, 1.0f},   // 浅灰色维修区
+        new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
+        new float[]{0.0f, 0.8f, 0.0f, 1.0f},   // 梅赛德斯绿色标志牌
+        new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+    );
+
+    private static final RaceTrack.PitStopColors REDBULL_THEME = new RaceTrack.PitStopColors(
+        new float[]{0.0f, 0.0f, 0.4f, 1.0f},  // 深蓝色主建筑
+        new float[]{0.0f, 0.0f, 0.3f, 1.0f},  // 更深的蓝色屋顶
+        new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
+        new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
+        new float[]{0.8f, 0.0f, 0.0f, 1.0f},  // 红牛红色标志牌
+        new float[]{0.2f, 0.2f, 0.8f, 0.6f}   // 半透明蓝色窗户
+    );
+
+    // 在类中添加一个变量来跟踪当前主题
+    private RaceTrack.PitStopColors currentPitStopTheme = FERRARI_THEME;
+
     public void start() throws IOException {
         try {
             Display.setDisplayMode(new DisplayMode(1200, 800));
@@ -235,7 +266,7 @@ public class NascarWindow {
         // 处理鼠标滚轮缩放
         int dWheel = Mouse.getDWheel();
         if (dWheel < 0) {
-            OrthoNumber += 20; // 缩小视角
+            OrthoNumber += 20; // 缩��视角
         } else if (dWheel > 0) {
             OrthoNumber -= 20; // 放大视角
         }
@@ -243,6 +274,15 @@ public class NascarWindow {
         // 处理键盘输入
         if (Keyboard.isKeyDown(Keyboard.KEY_R)) {
             MyArcball.reset();
+        }
+
+        // 添加键盘控制来切换维修站主题
+        if (Keyboard.isKeyDown(Keyboard.KEY_1)) {
+            currentPitStopTheme = FERRARI_THEME;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_2)) {
+            currentPitStopTheme = MERCEDES_THEME;
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_3)) {
+            currentPitStopTheme = REDBULL_THEME;
         }
     }
 
@@ -324,7 +364,7 @@ public class NascarWindow {
             
             // 绘制赛道和大灯 - 不传递墙面纹理
             track.drawTrack(TRACK_INNER_RADIUS, TRACK_OUTER_RADIUS, 0.0f, BANKING_ANGLE, 60,
-                          trackTexture, null, baseTexture, groundTexture);  // 将wallTexture替换为null
+                          trackTexture, null, baseTexture, groundTexture, currentPitStopTheme);  // 将wallTexture替换为null
             track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, postHeight);  // 添加postHeight参数
 
             // 绘制所有赛车

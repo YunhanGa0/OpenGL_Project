@@ -105,7 +105,7 @@ public class Car {
                 glPushMatrix();
                 {
                     glTranslatef(0.0f, 0.0f, 0.7f);
-                    glScalef(0.75f, 0.8f, 0.8f);  // 从1.6f, 1.6f, 1.8f缩小
+                    glScalef(0.75f, 0.8f, 0.65f);  // 从1.6f, 1.6f, 1.8f缩小
                     setMaterial(windowColor, 128.0f);
                     carBody.drawCube();
                 }

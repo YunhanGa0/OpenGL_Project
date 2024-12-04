@@ -41,23 +41,23 @@ public class NascarWindow {
     private float[] carAngles;  // 每辆赛车的角度
     private float[] carSpeeds;  // 每辆赛车的速度
     private static final int CAR_COUNT = 4;  // 赛道上的赛车数量
-    private static final float TRACK_OUTER_RADIUS = 550.0f;  // 最外圈半径
-    private static final float TRACK_INNER_RADIUS = 300.0f;  // 最内圈半径
+    private static final float TRACK_OUTER_RADIUS = 700.0f;  // 最外圈半径
+    private static final float TRACK_INNER_RADIUS = 450.0f;  // 最内圈半径
     private static final float BANKING_ANGLE = (float)Math.PI/12;  // 赛道倾斜角度
     
     // 为每辆车设置固定的轨道半径和高度
     private static final float[] CAR_RADII = {
-        320.0f,  // 第1辆车 - 最内圈
-        370.0f,  // 第2辆车
-        430.0f,  // 第3辆车
-        490.0f   // 第4辆车 - 最外圈
+        320.0f + 150.0f,  // 第1辆车 - 最内圈
+        370.0f + 150.0f,  // 第2辆车
+        430.0f + 150.0f,  // 第3辆车
+        490.0f + 150.0f   // 第4辆车 - 最外圈
     };
     
     private static final float[] CAR_HEIGHTS = {
-        -62.0f,   // 第1辆车 - 最内圈（高度最高）
-        -61.0f,  // 第2辆车
-        -61.0f,  // 第3辆车
-        -60.0f   // 第4辆车 - 最外圈（高度最低）
+        -102.0f,   // 第1辆车 - 最内圈（高度最高）
+        -101.0f,  // 第2辆车
+        -101.0f,  // 第3辆车
+        -100.0f   // 第4辆车 - 最外圈（高度最低）
     };
 
     // 定义不同赛车的颜色

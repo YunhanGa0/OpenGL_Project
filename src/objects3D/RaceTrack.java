@@ -353,7 +353,7 @@ public class RaceTrack {
     public void drawLightPosts(float trackRadius, float baseHeight, float postHeight) {
         float postRadius = trackRadius * 1.2f;
         float lightSize = 20.0f;
-        float adjustedBaseHeight = baseHeight + 20.0f;
+        float adjustedBaseHeight = baseHeight + 60.0f;
         
         for (int i = 0; i < 4; i++) {
             float angle = (float)(i * Math.PI / 2);

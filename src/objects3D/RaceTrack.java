@@ -11,6 +11,8 @@ import java.nio.FloatBuffer;
 
 public class RaceTrack {
     
+    private Sphere sphere = new Sphere();  // 添加成员变量
+    
     public void drawTrack(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture trackTexture, Texture wallTexture, Texture baseTexture, Texture groundTexture) {
         // 计算赛道倾斜后的最大高度差
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
@@ -351,8 +353,8 @@ public class RaceTrack {
     public void drawLightPosts(float trackRadius, float baseHeight, float postHeight) {
         float postRadius = trackRadius * 1.2f;
         float lightSize = 20.0f;
+        float adjustedBaseHeight = baseHeight + 20.0f;
         
-        // 绘制四根大灯柱子
         for (int i = 0; i < 4; i++) {
             float angle = (float)(i * Math.PI / 2);
             float x = (float)(postRadius * Math.cos(angle));
@@ -360,42 +362,147 @@ public class RaceTrack {
             
             glPushMatrix();
             {
-                // 绘制柱子
+                glTranslatef(x, y, adjustedBaseHeight);
+                
+                // 1. 绘制底座
+                glColor3f(0.3f, 0.3f, 0.3f);
+                glPushMatrix();
+                {
+                    glScalef(20.0f, 20.0f, 5.0f);
+                    drawCylinder(16);
+                }
+                glPopMatrix();
+                
+                // 2. 绘制主杆
                 glColor3f(0.4f, 0.4f, 0.4f);
-                glTranslatef(x, y, baseHeight);
-                
-                // 绘制垂直的柱子
                 glPushMatrix();
                 {
-                    glScalef(10.0f, 10.0f, postHeight);
-                    drawCylinder(10);
+                    glTranslatef(0, 0, 2.5f);
+                    glScalef(10.0f, 10.0f, postHeight - 2.5f);
+                    drawCylinder(16);
                 }
                 glPopMatrix();
                 
-                // 绘制横臂
+                // 3. 绘制顶部连接件
+                glColor3f(0.35f, 0.35f, 0.35f);
                 glPushMatrix();
                 {
-                    glTranslatef(0, 0, postHeight);
+                    glTranslatef(0, 0, postHeight - 10.0f);
+                    glScalef(15.0f, 15.0f, 20.0f);
+                    drawCylinder(16);
+                }
+                glPopMatrix();
+                
+                // 4. 绘制横臂
+                glPushMatrix();
+                {
+                    glTranslatef(0, 0, postHeight - 5.0f);
                     float armAngle = (float)Math.toDegrees(angle);
-                    glRotatef(armAngle + 180, 0, 0, 1);  // 添加180度使横臂朝向内侧
-                    glRotatef(90, 0, 1, 0);
-                    glScalef(5.0f, 5.0f, 50.0f);
-                    drawCylinder(10);
+                    glRotatef(armAngle + 180, 0, 0, 1);
+                    
+                    // 主横臂
+                    glColor3f(0.4f, 0.4f, 0.4f);
+                    glPushMatrix();
+                    {
+                        glRotatef(90, 0, 1, 0);
+                        glScalef(6.0f, 6.0f, 60.0f);
+                        drawCylinder(12);
+                    }
+                    glPopMatrix();
                 }
                 glPopMatrix();
-                
-                // 绘制灯具外壳
+
+                // 5. 绘制灯具组件
                 glPushMatrix();
                 {
-                    // 调整灯具位置，使其位于横臂内侧末端
-                    glTranslatef(
-                        -(float)(50.0f * Math.cos(angle)),  // 添加负号使其朝向内侧
-                        -(float)(50.0f * Math.sin(angle)),  // 添加负号使其朝向内侧
-                        postHeight
-                    );
+                    // 移动到灯具位置
+                    float lightX = -(float)(60.0f * Math.cos(angle));
+                    float lightY = -(float)(60.0f * Math.sin(angle));
+                    float lightZ = postHeight - 5.0f;
+                    glTranslatef(lightX, lightY, lightZ);
+
+                    // 旋转灯具朝向
+                    glRotatef((float)Math.toDegrees(angle) + 90, 0, 0, 1);
+                    glRotatef(60, 1, 0, 0);
+
+                    // 主体外壳
+                    glColor3f(0.2f, 0.2f, 0.2f);
+                    glPushMatrix();
+                    {
+                        glScalef(30.0f, 25.0f, 15.0f);
+                        drawBox();
+                    }
+                    glPopMatrix();
+
+                    // 散热片（在外壳后部）
                     glColor3f(0.3f, 0.3f, 0.3f);
-                    glScalef(lightSize, lightSize, lightSize);
-                    drawCube();
+                    for(int fin = 0; fin < 8; fin++) {
+                        glPushMatrix();
+                        {
+                            glTranslatef(0, 0, -8.0f + fin * 2.0f);  // 从外壳后部开始
+                            glScalef(35.0f, 30.0f, 0.5f);  // 略大于外壳
+                            drawBox();
+                        }
+                        glPopMatrix();
+                    }
+
+                    // 前框（装饰性边框）
+                    glColor3f(0.25f, 0.25f, 0.25f);
+                    glPushMatrix();
+                    {
+                        glTranslatef(0, 0, 7.5f);
+                        glScalef(32.0f, 27.0f, 1.0f);
+                        drawBox();
+                    }
+                    glPopMatrix();
+
+                    // 发光部分
+                    glPushMatrix();
+                    {
+                        // 设置发光材质
+                        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+                        matEmission.put(new float[] {1.0f, 1.0f, 0.8f, 1.0f}).flip();
+                        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+
+                        glColor3f(1.0f, 1.0f, 0.8f);
+                        glTranslatef(0, 0, 7.0f);
+                        glScalef(28.0f, 23.0f, 1.0f);
+                        drawBox();
+
+                        resetMaterial();
+                    }
+                    glPopMatrix();
+
+                    // 光源位置标记（黄色小球）
+                    glPushMatrix();
+                    {
+                        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+                        matEmission.put(new float[] {1.0f, 1.0f, 0.0f, 1.0f}).flip();
+                        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+
+                        glColor3f(1.0f, 1.0f, 0.0f);
+                        glTranslatef(0, 0, 7.0f);
+                        sphere.drawSphere(3.0f, 16, 16);
+
+                        resetMaterial();
+                    }
+                    glPopMatrix();
+                    
+                    // 6. 在光源位置绘制标记球体
+                    glPushMatrix();
+                    {
+                        // 设置发光材质
+                        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+                        matEmission.put(new float[] {1.0f, 1.0f, 0.0f, 1.0f}).flip();
+                        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+                        
+                        glColor3f(1.0f, 1.0f, 0.0f);  // 黄色
+                        glTranslatef(0, 0, 7.0f);  // 移动到灯具前方
+                        sphere.drawSphere(3.0f, 16, 16);  // 使用项目中的Sphere类
+                        
+                        resetMaterial();
+                    }
+                    glPopMatrix();
                 }
                 glPopMatrix();
             }
@@ -439,49 +546,45 @@ public class RaceTrack {
         glEnd();
     }
     
-    private void drawCube() {
+    private void drawBox() {
         glBegin(GL_QUADS);
-        // 前面
-        glNormal3f(0, 0, 1);
-        glVertex3f(-0.5f, -0.5f, 0.5f);
-        glVertex3f(0.5f, -0.5f, 0.5f);
-        glVertex3f(0.5f, 0.5f, 0.5f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        
-        // 后面
-        glNormal3f(0, 0, -1);
-        glVertex3f(-0.5f, -0.5f, -0.5f);
-        glVertex3f(-0.5f, 0.5f, -0.5f);
-        glVertex3f(0.5f, 0.5f, -0.5f);
-        glVertex3f(0.5f, -0.5f, -0.5f);
-        
-        // 顶面
-        glNormal3f(0, 1, 0);
-        glVertex3f(-0.5f, 0.5f, -0.5f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        glVertex3f(0.5f, 0.5f, 0.5f);
-        glVertex3f(0.5f, 0.5f, -0.5f);
-        
-        // 底面
-        glNormal3f(0, -1, 0);
-        glVertex3f(-0.5f, -0.5f, -0.5f);
-        glVertex3f(0.5f, -0.5f, -0.5f);
-        glVertex3f(0.5f, -0.5f, 0.5f);
-        glVertex3f(-0.5f, -0.5f, 0.5f);
-        
-        // 右面
-        glNormal3f(1, 0, 0);
-        glVertex3f(0.5f, -0.5f, -0.5f);
-        glVertex3f(0.5f, 0.5f, -0.5f);
-        glVertex3f(0.5f, 0.5f, 0.5f);
-        glVertex3f(0.5f, -0.5f, 0.5f);
-        
-        // 左面
-        glNormal3f(-1, 0, 0);
-        glVertex3f(-0.5f, -0.5f, -0.5f);
-        glVertex3f(-0.5f, -0.5f, 0.5f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        glVertex3f(-0.5f, 0.5f, -0.5f);
+        {
+            // 前面
+            glVertex3f(-0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, 0.5f, 0.5f);
+            glVertex3f(-0.5f, 0.5f, 0.5f);
+            
+            // 后面
+            glVertex3f(-0.5f, -0.5f, -0.5f);
+            glVertex3f(-0.5f, 0.5f, -0.5f);
+            glVertex3f(0.5f, 0.5f, -0.5f);
+            glVertex3f(0.5f, -0.5f, -0.5f);
+            
+            // 顶面
+            glVertex3f(-0.5f, 0.5f, -0.5f);
+            glVertex3f(-0.5f, 0.5f, 0.5f);
+            glVertex3f(0.5f, 0.5f, 0.5f);
+            glVertex3f(0.5f, 0.5f, -0.5f);
+            
+            // 底面
+            glVertex3f(-0.5f, -0.5f, -0.5f);
+            glVertex3f(0.5f, -0.5f, -0.5f);
+            glVertex3f(0.5f, -0.5f, 0.5f);
+            glVertex3f(-0.5f, -0.5f, 0.5f);
+            
+            // 右面
+            glVertex3f(0.5f, -0.5f, -0.5f);
+            glVertex3f(0.5f, 0.5f, -0.5f);
+            glVertex3f(0.5f, 0.5f, 0.5f);
+            glVertex3f(0.5f, -0.5f, 0.5f);
+            
+            // 左面
+            glVertex3f(-0.5f, -0.5f, -0.5f);
+            glVertex3f(-0.5f, -0.5f, 0.5f);
+            glVertex3f(-0.5f, 0.5f, 0.5f);
+            glVertex3f(-0.5f, 0.5f, -0.5f);
+        }
         glEnd();
     }
     

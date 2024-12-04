@@ -310,16 +310,24 @@ public class RaceTrack {
         
         // 设置地面材质
         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
-        matEmission.put(new float[] {0.3f, 0.3f, 0.3f, 1.0f}).flip();
+        matEmission.put(new float[] {0.5f, 0.5f, 0.5f, 1.0f}).flip();  // 增加发光
         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
         
         FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
-        matAmbient.put(new float[] {0.6f, 0.6f, 0.6f, 1.0f}).flip();
+        matAmbient.put(new float[] {0.9f, 0.9f, 0.9f, 1.0f}).flip();  // 增加环境光反射
         glMaterial(GL_FRONT, GL_AMBIENT, matAmbient);
         
         FloatBuffer matDiffuse = BufferUtils.createFloatBuffer(4);
-        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();
+        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();  // 保持漫反射
         glMaterial(GL_FRONT, GL_DIFFUSE, matDiffuse);
+        
+        // 添加镜面反射
+        FloatBuffer matSpecular = BufferUtils.createFloatBuffer(4);
+        matSpecular.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_SPECULAR, matSpecular);
+        
+        // 设置镜面反射的亮度（光泽度）
+        glMaterialf(GL_FRONT, GL_SHININESS, 128.0f);
         
         glEnable(GL_TEXTURE_2D);
         texture.bind();

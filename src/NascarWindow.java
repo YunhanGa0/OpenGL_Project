@@ -86,6 +86,12 @@ public class NascarWindow {
 
     private static final float[] SHADOW_COLOR = {0.1f, 0.1f, 0.1f, 0.3f};  // 更深的灰色，增加不透明度
 
+    private static final int CARS_PER_TRACK = 5;  // 每个赛道上的赛车数量
+
+    private Car[][] trackCars;  // 每个赛道上的赛车
+    private float[][] trackCarAngles;  // 每个赛道上赛车的角度
+    private float[][] trackCarSpeeds;  // 每个赛道上赛车的速度
+
     public void start() throws IOException {
         try {
             Display.setDisplayMode(new DisplayMode(1200, 800));
@@ -164,6 +170,11 @@ public class NascarWindow {
         carAngles = new float[CAR_COUNT];
         carSpeeds = new float[CAR_COUNT];
 
+        // 初始化每个赛道上的赛车
+        trackCars = new Car[CAR_COUNT - 1][CARS_PER_TRACK];
+        trackCarAngles = new float[CAR_COUNT - 1][CARS_PER_TRACK];
+        trackCarSpeeds = new float[CAR_COUNT - 1][CARS_PER_TRACK];
+
         // 加载赛车纹理
         carTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/car_texture.png"));
 
@@ -172,6 +183,15 @@ public class NascarWindow {
             cars[i] = new Car(CAR_COLORS[i]);  // 传入对应的颜色
             carAngles[i] = (float)(i * (2.0f * Math.PI / CAR_COUNT));
             carSpeeds[i] = 1.0f + (float)(Math.random() * 0.5f);
+
+            // 为每个赛道添加额外的赛车
+            if (i > 0) {  // 跳过红色赛车的赛道
+                for (int j = 0; j < CARS_PER_TRACK; j++) {
+                    trackCars[i - 1][j] = new Car(new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f});
+                    trackCarAngles[i - 1][j] = (float)(j * (2.0f * Math.PI / CARS_PER_TRACK));
+                    trackCarSpeeds[i - 1][j] = carSpeeds[i];  // 统一速度
+                }
+            }
         }
     }
 
@@ -181,6 +201,16 @@ public class NascarWindow {
             carAngles[i] += carSpeeds[i] * delta;
             if (carAngles[i] > 2 * Math.PI) {
                 carAngles[i] -= 2 * Math.PI;
+            }
+
+            // 更新每个赛道上的额外赛车
+            if (i > 0) {
+                for (int j = 0; j < CARS_PER_TRACK; j++) {
+                    trackCarAngles[i - 1][j] += trackCarSpeeds[i - 1][j] * delta;
+                    if (trackCarAngles[i - 1][j] > 2 * Math.PI) {
+                        trackCarAngles[i - 1][j] -= 2 * Math.PI;
+                    }
+                }
             }
         }
 
@@ -322,6 +352,35 @@ public class NascarWindow {
                     cars[i].drawCar(carTexture, 20.0f);
                 }
                 glPopMatrix();
+
+                // 绘制每个赛道上的额外赛车
+                if (i > 0) {
+                    for (int j = 0; j < CARS_PER_TRACK; j++) {
+                        float[] extraCarPos = trackCars[i - 1][j].getPositionOnTrack(CAR_RADII[i], trackCarAngles[i - 1][j], BANKING_ANGLE);
+
+                        // 绘制额外赛车的阴影
+                        drawCarShadow(extraCarPos, CAR_RADII[i], trackCarAngles[i - 1][j], 20.0f, i);
+
+                        // 然后绘制额外赛车
+                        glPushMatrix();
+                        {
+                            glTranslatef(extraCarPos[0], extraCarPos[1], extraCarPos[2] + CAR_HEIGHTS[i]);
+
+                            // 2. 向赛道内侧倾斜
+                            float extraTiltDirection = (float)Math.toDegrees(trackCarAngles[i - 1][j]) + 90;
+                            glRotatef(extraTiltDirection, 0.0f, 0.0f, 1.0f);
+                            glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
+                            glRotatef(-extraTiltDirection, 0.0f, 0.0f, 1.0f);
+
+                            // 3. 最后设置车身朝向
+                            glRotatef(extraCarPos[3], 0.0f, 0.0f, 1.0f);
+
+                            // 绘制额外赛车
+                            trackCars[i - 1][j].drawCar(carTexture, 20.0f);
+                        }
+                        glPopMatrix();
+                    }
+                }
             }
         }
         glPopMatrix();

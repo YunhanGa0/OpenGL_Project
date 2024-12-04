@@ -68,6 +68,14 @@ public class NascarWindow {
         {1.0f, 1.0f, 0.0f, 1.0f}   // 第4辆车 - 黄色
     };
 
+    // 在类的开头添加阴影高度数组，与CAR_HEIGHTS对应
+    private static final float[] SHADOW_HEIGHTS = {
+        50.0f,   // 第1辆车 - 最内圈
+        32.0f,   // 第2辆车
+        40.0f,   // 第3辆车
+        50.0f    // 第4辆车 - 最外圈
+    };
+
     private long lastFrameTime;
 
     // 添加光源数组
@@ -75,6 +83,8 @@ public class NascarWindow {
     private static final int[] LIGHTS = {
         GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4
     };
+
+    private static final float[] SHADOW_COLOR = {0.1f, 0.1f, 0.1f, 0.3f};  // 更深的灰色，增加不透明度
 
     public void start() throws IOException {
         try {
@@ -289,12 +299,14 @@ public class NascarWindow {
 
             // 绘制所有赛车
             for (int i = 0; i < CAR_COUNT; i++) {
+                float[] carPos = cars[i].getPositionOnTrack(CAR_RADII[i], carAngles[i], BANKING_ANGLE);
+                
+                // 传入车辆索引i
+                drawCarShadow(carPos, CAR_RADII[i], carAngles[i], 20.0f, i);
+                
+                // 然后绘制赛车
                 glPushMatrix();
                 {
-                    // 使用预设的轨道半径和高度
-                    float[] carPos = cars[i].getPositionOnTrack(CAR_RADII[i], carAngles[i], BANKING_ANGLE);
-
-                    // 1. 先移动到赛道上的位置，使用预设高度
                     glTranslatef(carPos[0], carPos[1], carPos[2] + CAR_HEIGHTS[i]);
 
                     // 2. 向赛道内侧倾斜
@@ -313,6 +325,62 @@ public class NascarWindow {
             }
         }
         glPopMatrix();
+    }
+
+    private void drawCarShadow(float[] carPos, float radius, float angle, float scale, int carIndex) {
+        // 计算赛车在平面上的距离（相对于赛道中心）
+        float distanceFromCenter = (float)Math.sqrt(carPos[0] * carPos[0] + carPos[1] * carPos[1]);
+        
+        // 只在赛道范围内绘制阴影
+        if (distanceFromCenter < TRACK_OUTER_RADIUS && distanceFromCenter > TRACK_INNER_RADIUS) {
+            glPushMatrix();
+            {
+                // 禁用深度写入，但保持深度测试
+                glDepthMask(false);
+                
+                // 启用混合以实现半透明效果
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                
+                // 禁用光照以确保阴影颜色正确
+                glDisable(GL_LIGHTING);
+                
+                // 设置阴影颜色
+                glColor4f(SHADOW_COLOR[0], SHADOW_COLOR[1], SHADOW_COLOR[2], SHADOW_COLOR[3]);
+                
+                // 使用对应车辆的阴影高度
+                glTranslatef(carPos[0], carPos[1], SHADOW_HEIGHTS[carIndex]);
+                
+                // 根据赛道倾斜角度旋转阴影
+                float tiltDirection = (float)Math.toDegrees(angle) + 90;
+                glRotatef(tiltDirection, 0.0f, 0.0f, 1.0f);
+                glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
+                glRotatef(-tiltDirection, 0.0f, 0.0f, 1.0f);
+                
+                // 压扁并放大阴影
+                glScalef(scale * 1.2f, scale * 0.8f, 1.0f);
+                
+                // 绘制简单的椭圆形阴影
+                glBegin(GL_TRIANGLE_FAN);
+                {
+                    glVertex3f(0.0f, 0.0f, 0.0f);  // 中心点
+                    int segments = 32;
+                    for (int i = 0; i <= segments; i++) {
+                        float theta = (float)(i * 2.0f * Math.PI / segments);
+                        float x = (float)Math.cos(theta) * 2.0f;  // 调整这个系数来改变阴影长度
+                        float y = (float)Math.sin(theta);         // 调整这个系数来改变阴影宽度
+                        glVertex3f(x, y, 0.0f);
+                    }
+                }
+                glEnd();
+                
+                // 恢复状态
+                glEnable(GL_LIGHTING);
+                glDisable(GL_BLEND);
+                glDepthMask(true);
+            }
+            glPopMatrix();
+        }
     }
 
     public static void main(String[] argv) throws IOException {

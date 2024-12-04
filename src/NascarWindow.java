@@ -30,6 +30,7 @@ public class NascarWindow {
     private Texture trackTexture;
     private Texture wallTexture;
     private Texture baseTexture;
+    private Texture groundTexture;
     
     // 光照设置
     static float grey[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -123,6 +124,7 @@ public class NascarWindow {
         trackTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/track.png"));
         wallTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/wall.png"));
         baseTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/base.png"));
+        groundTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/ground.png"));
 
         // 初始化赛道
         track = new RaceTrack();
@@ -213,7 +215,7 @@ public class NascarWindow {
 
             // 绘制赛道
             track.drawTrack(TRACK_INNER_RADIUS, TRACK_OUTER_RADIUS, 0.0f, BANKING_ANGLE, 60,
-                      trackTexture, wallTexture, baseTexture);
+                      trackTexture, wallTexture, baseTexture, groundTexture);
 
             // 绘制所有赛车
             for (int i = 0; i < CAR_COUNT; i++) {

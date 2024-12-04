@@ -8,7 +8,7 @@ import org.newdawn.slick.opengl.Texture;
 
 public class RaceTrack {
     
-    public void drawTrack(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture trackTexture, Texture wallTexture, Texture baseTexture) {
+    public void drawTrack(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture trackTexture, Texture wallTexture, Texture baseTexture, Texture groundTexture) {
         // 计算赛道倾斜后的最大高度差
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
@@ -19,6 +19,7 @@ public class RaceTrack {
         drawBase(innerRadius, outerRadius, baseHeight, bankingAngle, segments, baseTexture);
         drawTrackSurface(innerRadius, outerRadius, baseHeight, bankingAngle, segments, trackTexture);
         drawTrackWalls(innerRadius, outerRadius, baseHeight, bankingAngle, segments, wallTexture);
+        drawGround(innerRadius, outerRadius, baseHeight, segments, groundTexture);
     }
     
     private void drawBase(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
@@ -221,6 +222,35 @@ public class RaceTrack {
             glVertex3f(x2, y2, maxBankHeight + wallHeight);
             glTexCoord2f(theta/(2*(float)Math.PI), 1);
             glVertex3f(x1, y1, maxBankHeight + wallHeight);
+        }
+        glEnd();
+        
+        glDisable(GL_TEXTURE_2D);
+    }
+    
+    private void drawGround(float innerRadius, float outerRadius, float height, int segments, Texture texture) {
+        float groundSize = outerRadius * 3.0f;  // 地面大小是赛道外径的3倍
+        float textureRepeat = 10.0f;  // 纹理重复次数
+        
+        glEnable(GL_TEXTURE_2D);
+        texture.bind();
+        
+        glBegin(GL_QUADS);
+        {
+            glNormal3f(0.0f, 0.0f, 1.0f);  // 地面法向量朝上
+            
+            // 绘制一个大的正方形作为地面
+            glTexCoord2f(0.0f, 0.0f);
+            glVertex3f(-groundSize, -groundSize, -height - 1.0f);  // 略低于赛道基座
+            
+            glTexCoord2f(textureRepeat, 0.0f);
+            glVertex3f(groundSize, -groundSize, -height - 1.0f);
+            
+            glTexCoord2f(textureRepeat, textureRepeat);
+            glVertex3f(groundSize, groundSize, -height - 1.0f);
+            
+            glTexCoord2f(0.0f, textureRepeat);
+            glVertex3f(-groundSize, groundSize, -height - 1.0f);
         }
         glEnd();
         

@@ -123,6 +123,16 @@ public class NascarWindow {
     // 在类中添加一个变量来跟踪当前主题
     private RaceTrack.PitStopColors currentPitStopTheme = FERRARI_THEME;
 
+    // 在类的开头添加摄像头相关变量
+    private boolean isFollowCamera = false;  // 是否启用跟随视角
+    private static final float CAMERA_HEIGHT = 15.0f;       // 摄像头高度（相对于车顶）
+    private static final float CAMERA_FORWARD = 0.0f;       // 位于车头正中
+    private static final float CAMERA_LEFT = 0.0f;          // 不需要左右偏移
+    private static final float LOOK_AHEAD = 150.0f;         // 前方观察距离
+    private static final float LOOK_UP = 0.0f;              // 保持水平视线
+    private static final float SIDE_VIEW_ANGLE = (float) (2.0f * Math.PI/3);  // 增加到120度的视角
+    private boolean waitForKeyrelease = true;               // 用于防止按键重复触发
+
     public void start() throws IOException {
         try {
             Display.setDisplayMode(new DisplayMode(1200, 800));
@@ -187,7 +197,7 @@ public class NascarWindow {
         float lightIntensity = 2.0f;  // 增加默认光照强度
         FloatBuffer lightColor = BufferUtils.createFloatBuffer(4);
         lightColor.put(lightIntensity).put(lightIntensity).put(0.9f*lightIntensity).put(1.0f).flip();
-        
+
         for (int i = 0; i < LIGHT_COUNT; i++) {
             glLight(LIGHTS[i], GL_DIFFUSE, lightColor);
             glLight(LIGHTS[i], GL_SPECULAR, lightColor);
@@ -266,7 +276,7 @@ public class NascarWindow {
         // 处理鼠标滚轮缩放
         int dWheel = Mouse.getDWheel();
         if (dWheel < 0) {
-            OrthoNumber += 20; // 缩��视角
+            OrthoNumber += 20; // 缩视角
         } else if (dWheel > 0) {
             OrthoNumber -= 20; // 放大视角
         }
@@ -284,19 +294,32 @@ public class NascarWindow {
         } else if (Keyboard.isKeyDown(Keyboard.KEY_3)) {
             currentPitStopTheme = REDBULL_THEME;
         }
+
+        // 添加C键切换视角
+        if (Keyboard.isKeyDown(Keyboard.KEY_C)) {
+            if (waitForKeyrelease) {
+                isFollowCamera = !isFollowCamera;
+                waitForKeyrelease = false;
+            }
+        } else {
+            waitForKeyrelease = true;
+        }
     }
 
     private void changeOrth() {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        glOrtho(1200 - OrthoNumber, OrthoNumber, (800 - (OrthoNumber * 0.66f)),
-                (OrthoNumber * 0.66f), 100000, -100000);
-        glMatrixMode(GL_MODELVIEW);
 
-        FloatBuffer CurrentMatrix = BufferUtils.createFloatBuffer(16);
-        glGetFloat(GL_MODELVIEW_MATRIX, CurrentMatrix);
-        MyArcball.getMatrix(CurrentMatrix);
-        glLoadMatrix(CurrentMatrix);
+        if (isFollowCamera) {
+            // 使用透视投影提供更真实的视角效果
+            gluPerspective(60.0f, 1200.0f/800.0f, 1.0f, 3000.0f);
+        } else {
+            // 原有的正交投影
+            glOrtho(1200 - OrthoNumber, OrthoNumber, (800 - (OrthoNumber * 0.66f)),
+                    (OrthoNumber * 0.66f), 100000, -100000);
+        }
+
+        glMatrixMode(GL_MODELVIEW);
     }
 
     private void renderGL() {
@@ -306,9 +329,38 @@ public class NascarWindow {
 
         glPushMatrix();
         {
-            glTranslatef(600, 400, 0);
-            glRotatef(-90, 1.0f, 0.0f, 0.0f);
-            glScalef(zoomLevel, zoomLevel, zoomLevel);
+            if (isFollowCamera) {
+                // 获取红色赛车的位置和角度
+                float[] carPos = cars[0].getPositionOnTrack(CAR_RADII[0], carAngles[0], BANKING_ANGLE);
+                
+                // 计算摄像头位置（车头正前方）
+                float camX = carPos[0] + (float)(CAMERA_FORWARD * Math.cos(carAngles[0]) +
+                                                LOOK_AHEAD * Math.cos(carAngles[0] + SIDE_VIEW_ANGLE));  // 使用更大的角度
+                float camY = carPos[1] + (float)(CAMERA_FORWARD * Math.sin(carAngles[0]) +
+                                                LOOK_AHEAD * Math.sin(carAngles[0] + SIDE_VIEW_ANGLE));  // 使用更大的角度
+                float camZ = carPos[2] + CAR_HEIGHTS[0] + CAMERA_HEIGHT;
+                
+                // 计算观察点（车的位置）
+                float lookX = carPos[0];
+                float lookY = carPos[1];
+                float lookZ = carPos[2] + CAR_HEIGHTS[0] + LOOK_UP;
+                
+                // 设置视角
+                glLoadIdentity();
+                gluLookAt(camX, camY, camZ,          // 摄像头位置
+                          lookX, lookY, lookZ,        // 看向的点（车的位置）
+                          0.0f, 0.0f, 1.0f);         // 上方向
+            } else {
+                // 原有的自由视角代码
+                glTranslatef(600, 400, 0);
+                glRotatef(-90, 1.0f, 0.0f, 0.0f);
+                glScalef(zoomLevel, zoomLevel, zoomLevel);
+                
+                FloatBuffer CurrentMatrix = BufferUtils.createFloatBuffer(16);
+                glGetFloat(GL_MODELVIEW_MATRIX, CurrentMatrix);
+                MyArcball.getMatrix(CurrentMatrix);
+                glLoadMatrix(CurrentMatrix);
+            }
 
             // 调整环境光，不要完全黑暗
             FloatBuffer ambientLight = BufferUtils.createFloatBuffer(4);

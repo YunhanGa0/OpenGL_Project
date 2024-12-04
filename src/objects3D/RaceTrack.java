@@ -5,6 +5,9 @@ import static org.lwjgl.opengl.GL11.*;
 import GraphicsObjects.Utils;
 import GraphicsObjects.Vector4f;
 import org.newdawn.slick.opengl.Texture;
+import org.lwjgl.BufferUtils;
+
+import java.nio.FloatBuffer;
 
 public class RaceTrack {
     
@@ -25,6 +28,19 @@ public class RaceTrack {
     private void drawBase(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
+        
+        // 设置基座材质
+        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+        matEmission.put(new float[] {0.3f, 0.3f, 0.3f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+        
+        FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
+        matAmbient.put(new float[] {0.6f, 0.6f, 0.6f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_AMBIENT, matAmbient);
+        
+        FloatBuffer matDiffuse = BufferUtils.createFloatBuffer(4);
+        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_DIFFUSE, matDiffuse);
         
         glEnable(GL_TEXTURE_2D);
         texture.bind();
@@ -134,10 +150,26 @@ public class RaceTrack {
         glEnd();
         
         glDisable(GL_TEXTURE_2D);
+        
+        // 重置材质
+        resetMaterial();
     }
     
     private void drawTrackSurface(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
+        
+        // 设置赛道表面材质
+        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+        matEmission.put(new float[] {0.4f, 0.4f, 0.4f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+        
+        FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
+        matAmbient.put(new float[] {0.6f, 0.6f, 0.6f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_AMBIENT, matAmbient);
+        
+        FloatBuffer matDiffuse = BufferUtils.createFloatBuffer(4);
+        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_DIFFUSE, matDiffuse);
         
         glEnable(GL_TEXTURE_2D);
         texture.bind();
@@ -188,6 +220,9 @@ public class RaceTrack {
         glEnd();
         
         glDisable(GL_TEXTURE_2D);
+        
+        // 重置材质
+        resetMaterial();
     }
     
     private void drawTrackWalls(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
@@ -269,32 +304,48 @@ public class RaceTrack {
     }
     
     private void drawGround(float innerRadius, float outerRadius, float height, int segments, Texture texture) {
-        float groundSize = outerRadius * 3.0f;  // 地面大小是赛道外径的3倍
-        float textureRepeat = 10.0f;  // 纹理重复次数
+        float groundSize = outerRadius * 3.0f;  // 使地面足够大以覆盖整个场景
+        
+        // 设置地面材质
+        FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
+        matEmission.put(new float[] {0.3f, 0.3f, 0.3f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_EMISSION, matEmission);
+        
+        FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
+        matAmbient.put(new float[] {0.6f, 0.6f, 0.6f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_AMBIENT, matAmbient);
+        
+        FloatBuffer matDiffuse = BufferUtils.createFloatBuffer(4);
+        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_DIFFUSE, matDiffuse);
         
         glEnable(GL_TEXTURE_2D);
         texture.bind();
         
+        // 绘制单个大方形作为地面
         glBegin(GL_QUADS);
-        {
-            glNormal3f(0.0f, 0.0f, 1.0f);  // 地面法向量朝上
-            
-            // 绘制一个大的正方形作为地面
-            glTexCoord2f(0.0f, 0.0f);
-            glVertex3f(-groundSize, -groundSize, -height - 1.0f);  // 略低于赛道基座
-            
-            glTexCoord2f(textureRepeat, 0.0f);
-            glVertex3f(groundSize, -groundSize, -height - 1.0f);
-            
-            glTexCoord2f(textureRepeat, textureRepeat);
-            glVertex3f(groundSize, groundSize, -height - 1.0f);
-            
-            glTexCoord2f(0.0f, textureRepeat);
-            glVertex3f(-groundSize, groundSize, -height - 1.0f);
-        }
+        glNormal3f(0, 0, 1);  // 地面法向量朝上
+        
+        // 使用更大的纹理重复次数来避免纹理拉伸
+        float texRepeat = 8.0f;  // 纹理重复次数
+        
+        glTexCoord2f(0, 0);
+        glVertex3f(-groundSize, -groundSize, -height);
+        
+        glTexCoord2f(texRepeat, 0);
+        glVertex3f(groundSize, -groundSize, -height);
+        
+        glTexCoord2f(texRepeat, texRepeat);
+        glVertex3f(groundSize, groundSize, -height);
+        
+        glTexCoord2f(0, texRepeat);
+        glVertex3f(-groundSize, groundSize, -height);
         glEnd();
         
         glDisable(GL_TEXTURE_2D);
+        
+        // 重置材质
+        resetMaterial();
     }
     
     public void drawLightPosts(float trackRadius, float baseHeight, float postHeight) {
@@ -432,5 +483,20 @@ public class RaceTrack {
         glVertex3f(-0.5f, 0.5f, 0.5f);
         glVertex3f(-0.5f, 0.5f, -0.5f);
         glEnd();
+    }
+    
+    // 添加一个辅助方法来重置材质
+    private void resetMaterial() {
+        FloatBuffer resetEmission = BufferUtils.createFloatBuffer(4);
+        resetEmission.put(new float[] {0.0f, 0.0f, 0.0f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_EMISSION, resetEmission);
+        
+        FloatBuffer resetAmbient = BufferUtils.createFloatBuffer(4);
+        resetAmbient.put(new float[] {0.2f, 0.2f, 0.2f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_AMBIENT, resetAmbient);
+        
+        FloatBuffer resetDiffuse = BufferUtils.createFloatBuffer(4);
+        resetDiffuse.put(new float[] {0.8f, 0.8f, 0.8f, 1.0f}).flip();
+        glMaterial(GL_FRONT, GL_DIFFUSE, resetDiffuse);
     }
 }

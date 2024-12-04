@@ -136,10 +136,10 @@ public class NascarWindow {
         // 初始化赛道
         track = new RaceTrack();
 
-        // 设置聚光灯的颜色 - 增加亮度以补偿环境光的缺失
-        float lightIntensity = 1.0f;  // 增加光照强度
+        // 修改初始光照设置
+        float lightIntensity = 2.0f;  // 增加默认光照强度
         FloatBuffer lightColor = BufferUtils.createFloatBuffer(4);
-        lightColor.put(lightIntensity).put(lightIntensity).put(lightIntensity).put(1.0f).flip();
+        lightColor.put(lightIntensity).put(lightIntensity).put(0.9f*lightIntensity).put(1.0f).flip();
         
         for (int i = 0; i < LIGHT_COUNT; i++) {
             glLight(LIGHTS[i], GL_DIFFUSE, lightColor);
@@ -222,16 +222,20 @@ public class NascarWindow {
     private void renderGL() {
         changeOrth();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         glPushMatrix();
         {
-            // 调整场景位置和视角
             glTranslatef(600, 400, 0);
             glRotatef(-90, 1.0f, 0.0f, 0.0f);
             glScalef(zoomLevel, zoomLevel, zoomLevel);
 
-            // 更新光源位置
+            // 调整环境光，不要完全黑暗
+            FloatBuffer ambientLight = BufferUtils.createFloatBuffer(4);
+            ambientLight.put(new float[] {0.2f, 0.2f, 0.2f, 1.0f}).flip();  // 增加环境光
+            glLightModel(GL_LIGHT_MODEL_AMBIENT, ambientLight);
+
+            // 更新光源位置和属性
             float postRadius = TRACK_OUTER_RADIUS * 1.2f;
             float postHeight = 400.0f;
             
@@ -240,24 +244,42 @@ public class NascarWindow {
                 float x = (float)(postRadius * Math.cos(angle));
                 float y = (float)(postRadius * Math.sin(angle));
                 
-                // 设置光源位置和方向
+                // 设置光源位置
                 FloatBuffer lightPos = BufferUtils.createFloatBuffer(4);
-                lightPos.put(x).put(y).put(postHeight).put(1.0f).flip();
-                
-                FloatBuffer spotDir = BufferUtils.createFloatBuffer(4);
-                spotDir.put(-x).put(-y).put(-postHeight).put(0.0f).flip();
-                
+                lightPos.put(new float[] {x, y, postHeight, 1.0f}).flip();
                 glLight(LIGHTS[i], GL_POSITION, lightPos);
+                
+                // 设置光源方向
+                FloatBuffer spotDir = BufferUtils.createFloatBuffer(4);
+                spotDir.put(new float[] {-x, -y, -postHeight, 0.0f}).flip();
                 glLight(LIGHTS[i], GL_SPOT_DIRECTION, spotDir);
                 
-                // 使用 FloatBuffer 设置聚光灯角度和衰减
+                // 增强光源颜色强度
+                FloatBuffer lightDiffuse = BufferUtils.createFloatBuffer(4);
+                lightDiffuse.put(new float[] {3.0f, 3.0f, 2.7f, 1.0f}).flip();  // 进一步增强漫反射
+                glLight(LIGHTS[i], GL_DIFFUSE, lightDiffuse);
+                
+                FloatBuffer lightSpecular = BufferUtils.createFloatBuffer(4);
+                lightSpecular.put(new float[] {3.0f, 3.0f, 2.7f, 1.0f}).flip();  // 进一步增强镜面反射
+                glLight(LIGHTS[i], GL_SPECULAR, lightSpecular);
+                
+                // 调整聚光灯参数
                 FloatBuffer spotCutoff = BufferUtils.createFloatBuffer(4);
-                spotCutoff.put(45.0f).put(0.0f).put(0.0f).put(0.0f).flip();
+                spotCutoff.put(new float[] {75.0f, 0.0f, 0.0f, 0.0f}).flip();  // 增大光照角度
                 glLight(LIGHTS[i], GL_SPOT_CUTOFF, spotCutoff);
                 
-                FloatBuffer spotExponent = BufferUtils.createFloatBuffer(4);
-                spotExponent.put(2.0f).put(0.0f).put(0.0f).put(0.0f).flip();  // 降低衰减指数
-                glLight(LIGHTS[i], GL_SPOT_EXPONENT, spotExponent);
+                // 调整衰减因子
+                FloatBuffer constant = BufferUtils.createFloatBuffer(4);
+                constant.put(new float[] {1.0f, 0.0f, 0.0f, 0.0f}).flip();
+                glLight(LIGHTS[i], GL_CONSTANT_ATTENUATION, constant);
+                
+                FloatBuffer linear = BufferUtils.createFloatBuffer(4);
+                linear.put(new float[] {0.0003f, 0.0f, 0.0f, 0.0f}).flip();  // 进一步减小线性衰减
+                glLight(LIGHTS[i], GL_LINEAR_ATTENUATION, linear);
+                
+                FloatBuffer quadratic = BufferUtils.createFloatBuffer(4);
+                quadratic.put(new float[] {0.000001f, 0.0f, 0.0f, 0.0f}).flip();  // 进一步减小二次衰减
+                glLight(LIGHTS[i], GL_QUADRATIC_ATTENUATION, quadratic);
             }
             
             // 绘制赛道和大灯 - 不传递墙面纹理

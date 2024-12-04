@@ -28,6 +28,9 @@ public class RaceTrack {
         
         // 添加换胎站
         drawPitStop(innerRadius);
+        
+        // 在绘制完赛道后，添加内部道路
+        drawInnerRoad(innerRadius);
     }
     
     private void drawBase(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
@@ -615,11 +618,11 @@ public class RaceTrack {
     }
     
     public void drawPitStop(float innerRadius) {
-        float pitStopSize = 80.0f;  // 增大基础尺寸
-        float pitStopX = 0.0f;
+        float pitStopSize = 80.0f;
+        float pitStopX = 150.0f;
         float pitStopY = 0.0f;
-        float pitStopZ = 10.0f;  // 确认的地面高度
-        
+        float pitStopZ = 10.0f;
+
         glPushMatrix();
         {
             glTranslatef(pitStopX, pitStopY, pitStopZ);
@@ -832,5 +835,70 @@ public class RaceTrack {
         glMaterial(GL_FRONT, GL_SPECULAR, matSpecular);
         
         glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    }
+
+    public void drawInnerRoad(float innerRadius) {
+        // 道路材质（深灰色）
+        setMaterial(new float[]{0.1f, 0.1f, 0.1f, 1.0f}, 32.0f, 0.1f);
+        
+        float roadWidth = 80.0f;  // 道路宽度
+        float roadLength = innerRadius * 2.0f;  // 道路长度，确保两端与内边缘相接
+        
+        glPushMatrix();
+        {
+            // 调整道路的高度
+            glTranslatef(0.0f, 0.0f, 0.0f);  // 将道路抬高一点，避免与地面重叠
+            // 调整道路的走向
+            glRotatef(0.0f, 0.0f, 0.0f, 1.0f);  // 将道路旋转90度以垂直于当前赛道
+            
+            // 绘制主要道路
+            glPushMatrix();
+            {
+                // 调整道路的位置，使其两端与内边缘相接
+                glTranslatef(0.0f, 0, 0.0f);
+                // 调整道路的长度和宽度
+                glScalef(roadWidth, roadLength, 2.0f);
+                drawBox();
+            }
+            glPopMatrix();
+            
+            // 绘制道路边缘的白线
+            setMaterial(new float[]{1.0f, 1.0f, 1.0f, 1.0f}, 32.0f, 0.1f);
+            
+            // 上边的白线
+            glPushMatrix();
+            {
+                glTranslatef(roadWidth / 2 + 1.0f, 0, 0.5f);
+                glScalef(2.0f, roadLength, 1.0f);
+                drawBox();
+            }
+            glPopMatrix();
+            
+            // 下边的白线
+            glPushMatrix();
+            {
+                glTranslatef(-roadWidth / 2 - 1.0f, 0, 0.5f);
+                glScalef(2.0f, roadLength, 1.0f);
+                drawBox();
+            }
+            glPopMatrix();
+            
+            // 中间的虚线
+            float dashLength = 20.0f;  // 虚线长度
+            float gapLength = 10.0f;   // 虚线间隔
+            int numDashes = (int)(roadLength / (dashLength + gapLength));
+            
+            for(int i = 0; i < numDashes; i++) {
+                glPushMatrix();
+                {
+                    float yPos = i * (dashLength + gapLength);
+                    glTranslatef(0.0f, yPos-roadLength/2, 1.0f);
+                    glScalef(2.0f, dashLength, 1.0f);
+                    drawBox();
+                }
+                glPopMatrix();
+            }
+        }
+        glPopMatrix();
     }
 }

@@ -125,13 +125,25 @@ public class NascarWindow {
 
     // 在类的开头添加摄像头相关变量
     private boolean isFollowCamera = false;  // 是否启用跟随视角
+    private boolean isOrbitCamera = false;    // 环绕视角（V键）
+    private boolean waitForKeyreleaseC = true; // C键防重复
+    private boolean waitForKeyreleaseV = true; // V键防重复
     private static final float CAMERA_HEIGHT = 15.0f;       // 摄像头高度（相对于车顶）
     private static final float CAMERA_FORWARD = 0.0f;       // 位于车头正中
     private static final float CAMERA_LEFT = 0.0f;          // 不需要左右偏移
     private static final float LOOK_AHEAD = 150.0f;         // 前方观察距离
     private static final float LOOK_UP = 0.0f;              // 保持水平视线
     private static final float SIDE_VIEW_ANGLE = (float) (2.0f * Math.PI/3);  // 增加到120度的视角
-    private boolean waitForKeyrelease = true;               // 用于防止按键重复触发
+
+    // 修改环绕视角的参数
+    private static final float ORBIT_RADIUS = 1000.0f;     // 增大轨迹半径
+    private static final float ORBIT_HEIGHT = -500.0f;    // 保持负高度
+    private static final float ORBIT_SPEED = 0.3f;        // 保持旋转速度
+    private static final float TRACK_CENTER_X = 0.0f;     // 赛道中心X坐标
+    private static final float TRACK_CENTER_Y = 0.0f;     // 赛道中心Y坐标
+    private static final float TRACK_CENTER_Z = 00.0f;  // 保持观察点Z坐标
+
+    private float orbitAngle = 0.0f;                      // 当前旋转角度
 
     public void start() throws IOException {
         try {
@@ -295,14 +307,34 @@ public class NascarWindow {
             currentPitStopTheme = REDBULL_THEME;
         }
 
-        // 添加C键切换视角
+        // C键切换跟随视角
         if (Keyboard.isKeyDown(Keyboard.KEY_C)) {
-            if (waitForKeyrelease) {
+            if (waitForKeyreleaseC) {
                 isFollowCamera = !isFollowCamera;
-                waitForKeyrelease = false;
+                if (isFollowCamera) isOrbitCamera = false; // 关闭其他视角
+                waitForKeyreleaseC = false;
             }
         } else {
-            waitForKeyrelease = true;
+            waitForKeyreleaseC = true;
+        }
+        
+        // V键切换环绕视角
+        if (Keyboard.isKeyDown(Keyboard.KEY_V)) {
+            if (waitForKeyreleaseV) {
+                isOrbitCamera = !isOrbitCamera;
+                if (isOrbitCamera) isFollowCamera = false; // 关闭其他视角
+                waitForKeyreleaseV = false;
+            }
+        } else {
+            waitForKeyreleaseV = true;
+        }
+        
+        // 更新轨道摄像头角度
+        if (isOrbitCamera) {
+            orbitAngle += ORBIT_SPEED * delta;
+            if (orbitAngle >= 2 * Math.PI) {
+                orbitAngle -= 2 * Math.PI;
+            }
         }
     }
 
@@ -333,11 +365,11 @@ public class NascarWindow {
                 // 获取红色赛车的位置和角度
                 float[] carPos = cars[0].getPositionOnTrack(CAR_RADII[0], carAngles[0], BANKING_ANGLE);
                 
-                // 计算摄像头位置（车头正前方）
+                // 计算摄像位置（车头正前方）
                 float camX = carPos[0] + (float)(CAMERA_FORWARD * Math.cos(carAngles[0]) +
-                                                LOOK_AHEAD * Math.cos(carAngles[0] + SIDE_VIEW_ANGLE));  // 使用更大的角度
+                                                LOOK_AHEAD * Math.cos(carAngles[0] + SIDE_VIEW_ANGLE));
                 float camY = carPos[1] + (float)(CAMERA_FORWARD * Math.sin(carAngles[0]) +
-                                                LOOK_AHEAD * Math.sin(carAngles[0] + SIDE_VIEW_ANGLE));  // 使用更大的角度
+                                                LOOK_AHEAD * Math.sin(carAngles[0] + SIDE_VIEW_ANGLE));
                 float camZ = carPos[2] + CAR_HEIGHTS[0] + CAMERA_HEIGHT;
                 
                 // 计算观察点（车的位置）
@@ -347,9 +379,23 @@ public class NascarWindow {
                 
                 // 设置视角
                 glLoadIdentity();
-                gluLookAt(camX, camY, camZ,          // 摄像头位置
-                          lookX, lookY, lookZ,        // 看向的点（车的位置）
-                          0.0f, 0.0f, 1.0f);         // 上方向
+                gluLookAt(camX, camY, camZ, lookX, lookY, lookZ, 0.0f, 0.0f, 1.0f);
+            } else if (isOrbitCamera) {
+                // 计算摄像头位置（在赛道外围上空环绕）
+                float camX = (float)(ORBIT_RADIUS * Math.cos(orbitAngle + Math.PI/2));
+                float camY = (float)(ORBIT_RADIUS * Math.sin(orbitAngle + Math.PI/2));
+                float camZ = TRACK_CENTER_Z + ORBIT_HEIGHT;
+                
+                // 设置视角
+                glLoadIdentity();
+                
+                // 先进行整体场景的平移
+                glTranslatef(600, 400, 0);  // 将整个场景移动到正确的位置
+                
+                // 使用gluLookAt直接设置视角，看向赛道中心
+                gluLookAt(camX, camY, camZ,                    // 摄像头位置
+                          0.0f, 0.0f, TRACK_CENTER_Z,          // 看向原点（赛道中心）
+                          0.0f, 0.0f, 1.0f);                   // 上方向
             } else {
                 // 原有的自由视角代码
                 glTranslatef(600, 400, 0);
@@ -493,7 +539,7 @@ public class NascarWindow {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 
-                // 禁用光照以确保阴影颜色正确
+                // 禁用光照以确保影颜色正确
                 glDisable(GL_LIGHTING);
                 
                 // 设置阴影颜色
@@ -508,7 +554,7 @@ public class NascarWindow {
                 glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
                 glRotatef(-tiltDirection, 0.0f, 0.0f, 1.0f);
                 
-                // 压扁并放大阴影
+                // 扁并放大影
                 glScalef(scale * 1.2f, scale * 0.8f, 1.0f);
                 
                 // 绘制简单的椭圆形阴影

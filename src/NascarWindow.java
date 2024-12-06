@@ -70,7 +70,7 @@ public class NascarWindow {
 
     // 在类的开头添加阴影高度数组，与CAR_HEIGHTS对应
     private static final float[] SHADOW_HEIGHTS = {
-        50.0f,   // 第1辆车 - 最内圈
+        31.0f,   // 第1辆车 - 最内圈
         32.0f,   // 第2辆车
         40.0f,   // 第3辆车
         50.0f    // 第4辆车 - 最外圈
@@ -123,7 +123,7 @@ public class NascarWindow {
     // 在类中添加一个变量来跟踪当前主题
     private RaceTrack.PitStopColors currentPitStopTheme = FERRARI_THEME;
 
-    // 在类的开头添加摄像头相关变量
+    // 在类开头添加摄像头相关变量
     private boolean isFollowCamera = false;  // 是否启用跟随视角
     private boolean isOrbitCamera = false;    // 环绕视角（V键）
     private boolean waitForKeyreleaseC = true; // C键防重复
@@ -138,12 +138,19 @@ public class NascarWindow {
     // 修改环绕视角的参数
     private static final float ORBIT_RADIUS = 1000.0f;     // 增大轨迹半径
     private static final float ORBIT_HEIGHT = -500.0f;    // 保持负高度
-    private static final float ORBIT_SPEED = 0.3f;        // 保持旋转速度
+    private static final float ORBIT_SPEED = -0.05f;        // 保持旋转速度
     private static final float TRACK_CENTER_X = 0.0f;     // 赛道中心X坐标
     private static final float TRACK_CENTER_Y = 0.0f;     // 赛道中心Y坐标
-    private static final float TRACK_CENTER_Z = 00.0f;  // 保持观察点Z坐标
+    private static final float TRACK_CENTER_Z = 0.0f;  // 保持观察点Z坐标
 
     private float orbitAngle = 0.0f;                      // 当前旋转角度
+
+    // 在类的开头添加自动播放相关变量
+    private boolean isAutoPlay = true;    // 默认开启自动播放
+    private float autoPlayTimer = 0.0f;   // 自动播放计时器
+    private static final float ORBIT_VIEW_DURATION = 5.0f;   // 环绕视角持续时间
+    private static final float FOLLOW_VIEW_DURATION = 3.0f;  // 跟随视角持续时间
+    private static final float TOTAL_CYCLE_TIME = ORBIT_VIEW_DURATION + FOLLOW_VIEW_DURATION;  // 总循环时间
 
     public void start() throws IOException {
         try {
@@ -238,7 +245,7 @@ public class NascarWindow {
             carSpeeds[i] = 1.0f + (float)(Math.random() * 0.5f);
 
             // 为每个赛道添加额外的赛车
-            if (i > 0) {  // 跳过红色赛车的赛道
+            if (i > 0) {  // 跳过红色赛车的��道
                 for (int j = 0; j < CARS_PER_TRACK; j++) {
                     trackCars[i - 1][j] = new Car(new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f});
                     trackCarAngles[i - 1][j] = (float)(j * (2.0f * Math.PI / CARS_PER_TRACK));
@@ -311,7 +318,13 @@ public class NascarWindow {
         if (Keyboard.isKeyDown(Keyboard.KEY_C)) {
             if (waitForKeyreleaseC) {
                 isFollowCamera = !isFollowCamera;
-                if (isFollowCamera) isOrbitCamera = false; // 关闭其他视角
+                if (isFollowCamera) {
+                    isOrbitCamera = false;
+                    isAutoPlay = false;  // 关闭自动播放
+                } else {
+                    isAutoPlay = true;   // 取消跟随视角时恢复自动播放
+                    autoPlayTimer = 0.0f; // 重置计时器
+                }
                 waitForKeyreleaseC = false;
             }
         } else {
@@ -322,11 +335,36 @@ public class NascarWindow {
         if (Keyboard.isKeyDown(Keyboard.KEY_V)) {
             if (waitForKeyreleaseV) {
                 isOrbitCamera = !isOrbitCamera;
-                if (isOrbitCamera) isFollowCamera = false; // 关闭其他视角
+                if (isOrbitCamera) {
+                    isFollowCamera = false;
+                    isAutoPlay = false;  // 关闭自动播放
+                } else {
+                    isAutoPlay = true;   // 取消环绕视角时恢复自动播放
+                    autoPlayTimer = 0.0f; // 重置计时器
+                }
                 waitForKeyreleaseV = false;
             }
         } else {
             waitForKeyreleaseV = true;
+        }
+
+        // 自动播放逻辑
+        if (isAutoPlay) {
+            autoPlayTimer += delta;
+            if (autoPlayTimer >= TOTAL_CYCLE_TIME) {
+                autoPlayTimer -= TOTAL_CYCLE_TIME;  // 重置计时器
+            }
+            
+            // 根据计时器切换视角
+            if (autoPlayTimer < ORBIT_VIEW_DURATION) {
+                // 环绕视角时间段
+                isOrbitCamera = true;
+                isFollowCamera = false;
+            } else {
+                // 跟随视角时间段
+                isOrbitCamera = false;
+                isFollowCamera = true;
+            }
         }
         
         // 更新轨道摄像头角度

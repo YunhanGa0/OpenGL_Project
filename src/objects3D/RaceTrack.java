@@ -658,13 +658,14 @@ public class RaceTrack {
     // 修改drawPitStop方法
     public void drawPitStop(float innerRadius, PitStopColors colors) {
         float pitStopSize = 80.0f;
-        float pitStopX = 150.0f;  // 固定X坐标
-        float pitStopZ = 10.0f;   // 固定Z坐标
-        float spacing = 200.0f;   // 换胎站之间的间距
+        float pitStopX = 150.0f;
+        float pitStopZ = 10.0f;
+        float spacing = 200.0f;
+        float trackRadius = 700.0f;
         
         // 定义不同的颜色主题
         PitStopColors[] themes = {
-            new PitStopColors(              // 红色主题
+            new PitStopColors(              // 红色主题 - 法拉利
                 new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 鲜红色主建筑
                 new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
                 new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
@@ -672,50 +673,126 @@ public class RaceTrack {
                 new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
                 new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
             ),
-            new PitStopColors(              // 蓝色主题
-                new float[]{0.0f, 0.5f, 0.8f, 1.0f},  // 蓝色主建筑
-                new float[]{0.0f, 0.0f, 0.6f, 1.0f},  // 深蓝色屋顶
+            new PitStopColors(              // 银色主题 - 梅赛德斯
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 银色主建筑
+                new float[]{0.0f, 0.0f, 0.0f, 1.0f},  // 深银色屋顶
+                new float[]{0.3f, 0.3f, 0.3f, 1.0f},  // 灰色维修区
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
+                new float[]{0.0f, 0.6f, 0.2f, 1.0f},  // 绿色标志牌（梅赛德斯标志色）
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // 半透明灰色窗户
+            ),
+            new PitStopColors(              // 深蓝主题 - 红牛
+                new float[]{0.3f, 0.0f, 0.0f, 1.0f},  // 深蓝色主建筑
+                new float[]{0.0f, 0.0f, 0.1f, 1.0f},  // 更深蓝色屋顶
                 new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
                 new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-                new float[]{0.0f, 0.5f, 0.8f, 1.0f},  // 亮蓝色标志牌
-                new float[]{0.2f, 0.2f, 0.8f, 0.6f}   // 半透明蓝色窗户
+                new float[]{0.3f, 0.0f, 0.0f, 1.0f},  // 红色标志牌（红牛标志色）
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // 半透明灰色窗户
             ),
-            new PitStopColors(              // 绿色主题
-                new float[]{0.2f, 0.6f, 0.0f, 1.0f},  // 绿色主建筑
-                new float[]{0.0f, 1.0f, 0.0f, 1.0f},  // 深绿色屋顶
+            new PitStopColors(              // 橙色主题 - 迈凯伦
+                new float[]{0.8f, 0.1f, 0.0f, 1.0f},  // 橙色主建筑
+                new float[]{0.0f, 0.3f, 0.5f, 1.0f},  // 深橙色屋顶
                 new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
                 new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-                new float[]{0.2f, 0.6f, 0.0f, 1.0f},  // 亮绿色标志牌
-                new float[]{0.2f, 0.8f, 0.2f, 0.6f}   // 半透明绿色窗户
-            ),
-            new PitStopColors(              // 黄色主题
-                new float[]{0.9f, 0.8f, 0.0f, 1.0f},  // 明亮的黄色主建筑
-                new float[]{0.4f, 0.3f, 0.0f, 1.0f},  // 金黄色屋顶
-                new float[]{0.3f, 0.3f, 0.3f, 1.0f},  // 稍亮的灰色维修区
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-                new float[]{1.0f, 0.9f, 0.0f, 1.0f},  // 明亮的黄色标志牌
-                new float[]{0.9f, 0.8f, 0.2f, 0.6f}   // 半透明金黄色窗户
+                new float[]{0.8f, 0.1f, 0.0f, 1.0f},  // 蓝色标志牌（迈凯伦标志色）
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // 半透明灰色窗户
             )
         };
         
-        // 绘制每个换胎站
+        // 绘制每个换胎站的阴影和主体
         for (int i = 0; i < themes.length; i++) {
-            float yOffset = (i - (themes.length - 1) / 2.0f) * spacing;  // 计算Y轴偏移，使换胎站居中排列
+            float yOffset = (i - (themes.length - 1) / 2.0f) * spacing;
             
+            // 计算最近的灯光位置
+            float lightAngle = (float)(i * Math.PI / 2);
+            float lightX = (float)(trackRadius * 1.2f * Math.cos(lightAngle));
+            float lightY = (float)(trackRadius * 1.2f * Math.sin(lightAngle));
+            float lightZ = 400.0f;
+            
+            // 绘制阴影
+            glPushMatrix();
+            {
+                glDepthMask(false);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glDisable(GL_LIGHTING);
+                
+                // 设置阴影颜色
+                glColor4f(0.1f, 0.1f, 0.1f, 0.3f);
+                
+                // 计算阴影投影矩阵
+                FloatBuffer shadowMatrix = calculateShadowMatrix(
+                    new float[]{lightX, lightY, lightZ, 1.0f},  // 光源位置
+                    new float[]{0, 0, 1, 0}                     // 地面法向量
+                );
+                
+                // 应用投影矩阵
+                glPushMatrix();
+                {
+                    glTranslatef(pitStopX, yOffset, 1.0f);  // 移动到换胎站位置，略高于地面
+                    glMultMatrix(shadowMatrix);
+                    
+                    // 绘制换胎站的投影
+                    glRotatef(90, 0.0f, 0.0f, 1.0f);
+                    drawPitStopMainBuilding(pitStopSize, themes[i]);
+                    drawServiceArea(pitStopSize, themes[i]);
+                    // 不绘制装饰部分的阴影以简化
+                }
+                glPopMatrix();
+                
+                // 恢复状态
+                glEnable(GL_LIGHTING);
+                glDisable(GL_BLEND);
+                glDepthMask(true);
+            }
+            glPopMatrix();
+            
+            // 绘制换胎站主体
             glPushMatrix();
             {
                 glTranslatef(pitStopX, yOffset, pitStopZ);
-                
-                // 所有换胎站朝向相同方向
                 glRotatef(90, 0.0f, 0.0f, 1.0f);
-                
-                // 使用对应的颜色主题
-                drawPitStopMainBuilding(pitStopSize, themes[i]);
+                drawPitStopMainBuilding(pitStopSize, themes[i]);  // 使用对应的主题
                 drawServiceArea(pitStopSize, themes[i]);
                 drawPitStopDecorations(pitStopSize, themes[i]);
             }
             glPopMatrix();
         }
+    }
+
+    // 计算阴影投影矩阵的辅助方法
+    private FloatBuffer calculateShadowMatrix(float[] lightPos, float[] planeNormal) {
+        float dot = lightPos[0] * planeNormal[0] +
+                    lightPos[1] * planeNormal[1] +
+                    lightPos[2] * planeNormal[2] +
+                    lightPos[3] * planeNormal[3];
+        
+        float[] shadowMat = new float[16];
+        
+        shadowMat[0] = dot - lightPos[0] * planeNormal[0];
+        shadowMat[4] = -lightPos[0] * planeNormal[1];
+        shadowMat[8] = -lightPos[0] * planeNormal[2];
+        shadowMat[12] = -lightPos[0] * planeNormal[3];
+        
+        shadowMat[1] = -lightPos[1] * planeNormal[0];
+        shadowMat[5] = dot - lightPos[1] * planeNormal[1];
+        shadowMat[9] = -lightPos[1] * planeNormal[2];
+        shadowMat[13] = -lightPos[1] * planeNormal[3];
+        
+        shadowMat[2] = -lightPos[2] * planeNormal[0];
+        shadowMat[6] = -lightPos[2] * planeNormal[1];
+        shadowMat[10] = dot - lightPos[2] * planeNormal[2];
+        shadowMat[14] = -lightPos[2] * planeNormal[3];
+        
+        shadowMat[3] = -lightPos[3] * planeNormal[0];
+        shadowMat[7] = -lightPos[3] * planeNormal[1];
+        shadowMat[11] = -lightPos[3] * planeNormal[2];
+        shadowMat[15] = dot - lightPos[3] * planeNormal[3];
+        
+        // 创建直接缓冲区
+        FloatBuffer shadowBuffer = BufferUtils.createFloatBuffer(16);
+        shadowBuffer.put(shadowMat).flip();
+        return shadowBuffer;
     }
 
     private void drawPitStopMainBuilding(float size, PitStopColors colors) {

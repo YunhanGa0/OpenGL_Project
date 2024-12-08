@@ -31,6 +31,7 @@ public class NascarWindow {
     private Texture wallTexture;
     private Texture baseTexture;
     private Texture groundTexture;
+    private Texture centerTexture;  // 中心区域的纹理
     
     // 光照设置
     static float grey[] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -208,6 +209,7 @@ public class NascarWindow {
         trackTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/track.png"));
         baseTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/base2.png"));
         groundTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/ground.png"));
+        centerTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/img_1.png"));
 
         // 初始化赛道
         track = new RaceTrack();
@@ -245,7 +247,7 @@ public class NascarWindow {
             carSpeeds[i] = 1.0f + (float)(Math.random() * 0.5f);
 
             // 为每个赛道添加额外的赛车
-            if (i > 0) {  // 跳过红色赛车的��道
+            if (i > 0) {  // 跳过红色赛车的道
                 for (int j = 0; j < CARS_PER_TRACK; j++) {
                     trackCars[i - 1][j] = new Car(new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f});
                     trackCarAngles[i - 1][j] = (float)(j * (2.0f * Math.PI / CARS_PER_TRACK));
@@ -503,6 +505,40 @@ public class NascarWindow {
                           trackTexture, null, baseTexture, groundTexture, currentPitStopTheme);  // 将wallTexture替换为null
             track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, postHeight);  // 添加postHeight参数
 
+            // 添加中心区域的装饰
+            glPushMatrix();
+            {
+                // 启用混合
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                
+                // 禁用光照以确保纹理颜色正确显示
+                //glDisable(GL_LIGHTING);
+                
+                // 启用纹理
+                glEnable(GL_TEXTURE_2D);
+                centerTexture.bind();
+                
+                // 绘制一个平面，尺寸略小于内圈
+                float size = TRACK_INNER_RADIUS * 0.3f;  // 可以调整这个系数来改变大小
+                float height = 1.0f;  // 与阴影高度相同，确保在地面上方一点
+                
+                glBegin(GL_QUADS);
+                {
+                    glTexCoord2f(0.0f, 0.0f); glVertex3f(-size-200.0f, -size, height);
+                    glTexCoord2f(1.0f, 0.0f); glVertex3f(size-200.0f, -size, height);
+                    glTexCoord2f(1.0f, 1.0f); glVertex3f(size-200.0f, size, height);
+                    glTexCoord2f(0.0f, 1.0f); glVertex3f(-size-200.0f, size, height);
+                }
+                glEnd();
+                
+                // 恢复状态
+                glDisable(GL_TEXTURE_2D);
+                glEnable(GL_LIGHTING);
+                glDisable(GL_BLEND);
+            }
+            glPopMatrix();
+            
             // 绘制所有赛车
             for (int i = 0; i < CAR_COUNT; i++) {
                 float[] carPos = cars[i].getPositionOnTrack(CAR_RADII[i], carAngles[i], BANKING_ANGLE);

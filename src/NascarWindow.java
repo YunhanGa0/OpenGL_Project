@@ -28,130 +28,129 @@ public class NascarWindow {
     private Arcball MyArcball = new Arcball();
     private RaceTrack track;
     private Texture trackTexture;
-    private Texture wallTexture;
     private Texture baseTexture;
     private Texture groundTexture;
-    private Texture centerTexture;  // 中心区域的纹理
+    private Texture centerTexture;  // The texture of the center area
     
     // 光照设置
     static float grey[] = { 0.5f, 0.5f, 0.5f, 1.0f };
     static float white[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     
-    private Car[] cars;  // 多辆赛车
+    private Car[] cars;  // multi-car
     private Texture carTexture;
-    private float[] carAngles;  // 每辆赛车的角度
-    private float[] carSpeeds;  // 每辆赛车的速度
-    private static final int CAR_COUNT = 4;  // 赛道上的赛车数量
-    private static final float TRACK_OUTER_RADIUS = 700.0f;  // 最外圈半径
-    private static final float TRACK_INNER_RADIUS = 450.0f;  // 最内圈半径
-    private static final float BANKING_ANGLE = (float)Math.PI/12;  // 赛道倾斜角度
+    private float[] carAngles;  // The Angle of each race car
+    private float[] carSpeeds;  // The speed of each car
+    private static final int CAR_COUNT = 4;  // The speed of each car
+    private static final float TRACK_OUTER_RADIUS = 700.0f;  // The radius of the outermost ring
+    private static final float TRACK_INNER_RADIUS = 450.0f;  // The innermost circle radius
+    private static final float BANKING_ANGLE = (float)Math.PI/12;  // Track inclination angle
     
     // 为每辆车设置固定的轨道半径和高度
     private static final float[] CAR_RADII = {
-        320.0f + 150.0f,  // 第1辆车 - 最内圈
-        370.0f + 150.0f,  // 第2辆车
-        430.0f + 150.0f,  // 第3辆车
-        490.0f + 150.0f   // 第4辆车 - 最外圈
+        320.0f + 150.0f,  // Car 1 - the innermost circle
+        370.0f + 150.0f,  // Car 2
+        430.0f + 150.0f,  // Car 3
+        490.0f + 150.0f   // 4th car - outermost circle
     };
     
     private static final float[] CAR_HEIGHTS = {
-        -102.0f,   // 第1辆车 - 最内圈（高度最高）
-        -101.0f,  // 第2辆车
-        -101.0f,  // 第3辆车
-        -100.0f   // 第4辆车 - 最外圈（高度最低）
+        -102.0f,   // Car 1 - the innermost circle (highest height)
+        -101.0f,  // Car 2
+        -101.0f,  // Car 3
+        -100.0f   // Car 4 - the outermost circle (lowest height)
     };
 
-    // 定义不同赛车的颜色
+    // Define different car colors
     private static final float[][] CAR_COLORS = {
-        {1.0f, 0.0f, 0.0f, 1.0f},  // 第1辆车 - 红色
-        {0.0f, 0.0f, 1.0f, 1.0f},  // 第2辆车 - 蓝色
-        {0.0f, 1.0f, 0.0f, 1.0f},  // 第3辆车 - 绿色
-        {1.0f, 1.0f, 0.0f, 1.0f}   // 第4辆车 - 黄色
+        {1.0f, 0.0f, 0.0f, 1.0f},  // Car 1 - red
+        {0.0f, 0.0f, 1.0f, 1.0f},  // Car 2 - blue
+        {0.0f, 1.0f, 0.0f, 1.0f},  // Car 3 - green
+        {1.0f, 1.0f, 0.0f, 1.0f}   // Car 4 - yellow
     };
 
-    // 在类的开头添加阴影高度数组，与CAR_HEIGHTS对应
+    // Add shadow height array at the beginning of the class, corresponding to CAR_HEIGHTS
     private static final float[] SHADOW_HEIGHTS = {
-        31.0f,   // 第1辆车 - 最内圈
-        32.0f,   // 第2辆车
-        40.0f,   // 第3辆车
-        50.0f    // 第4辆车 - 最外圈
+        31.0f,   // Car 1 - the innermost circle
+        32.0f,   // Car 2
+        40.0f,   // Car 3
+        50.0f    // Car 4 - the outermost circle
     };
 
     private long lastFrameTime;
 
-    // 添加光源数组
+    // Add light source array
     private static final int LIGHT_COUNT = 4;
     private static final int[] LIGHTS = {
         GL_LIGHT1, GL_LIGHT2, GL_LIGHT3, GL_LIGHT4
     };
 
-    private static final float[] SHADOW_COLOR = {0.1f, 0.1f, 0.1f, 0.3f};  // 更深的灰色，增加不透明度
+    private static final float[] SHADOW_COLOR = {0.1f, 0.1f, 0.1f, 0.3f};  // Deeper grey, increase opacity
 
-    private static final int CARS_PER_TRACK = 5;  // 每个赛道上的赛车数量
+    private static final int CARS_PER_TRACK = 5;  // Number of cars per track
 
-    private Car[][] trackCars;  // 每个赛道上的赛车
-    private float[][] trackCarAngles;  // 每个赛道上赛车的角度
-    private float[][] trackCarSpeeds;  // 每个赛道上赛车的速度
+    private Car[][] trackCars;  // Cars on each track
+    private float[][] trackCarAngles;  // Angles of cars on each track
+    private float[][] trackCarSpeeds;  // Speeds of cars on each track
 
-    // 在NascarWindow类的开头添加一些预定义的颜色主题
+    // Add predefined color themes at the beginning of the NascarWindow class
     private static final RaceTrack.PitStopColors FERRARI_THEME = new RaceTrack.PitStopColors(
-        new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 法拉利红主建筑
-        new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
-        new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
-        new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
-        new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
-        new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+        new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // Ferrari red main building
+        new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // Deep red roof
+        new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // Dark grey service area
+        new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // Black equipment
+        new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // Bright red sign
+        new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // Semi-transparent grey window
     );
 
     private static final RaceTrack.PitStopColors MERCEDES_THEME = new RaceTrack.PitStopColors(
-        new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 奔驰银灰色主建筑
-        new float[]{0.15f, 0.15f, 0.15f, 1.0f}, // 深灰色屋顶
-        new float[]{0.3f, 0.3f, 0.3f, 1.0f},   // 浅灰色维修区
-        new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
-        new float[]{0.0f, 0.8f, 0.0f, 1.0f},   // 梅赛德斯绿色标志牌
-        new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+        new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // Mercedes silver grey main building
+        new float[]{0.15f, 0.15f, 0.15f, 1.0f}, // Dark grey roof
+        new float[]{0.3f, 0.3f, 0.3f, 1.0f},   // Light grey service area
+        new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // Black equipment
+        new float[]{0.0f, 0.8f, 0.0f, 1.0f},   // Mercedes green sign
+        new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // Semi-transparent grey window
     );
 
     private static final RaceTrack.PitStopColors REDBULL_THEME = new RaceTrack.PitStopColors(
-        new float[]{0.0f, 0.0f, 0.4f, 1.0f},  // 深蓝色主建筑
-        new float[]{0.0f, 0.0f, 0.3f, 1.0f},  // 更深的蓝色屋顶
-        new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
-        new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-        new float[]{0.8f, 0.0f, 0.0f, 1.0f},  // 红牛红色标志牌
-        new float[]{0.2f, 0.2f, 0.8f, 0.6f}   // 半透明蓝色窗户
+        new float[]{0.0f, 0.0f, 0.4f, 1.0f},  // Deep blue main building
+        new float[]{0.0f, 0.0f, 0.3f, 1.0f},  // Deeper blue roof
+        new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // Dark grey service area
+        new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // Black equipment
+        new float[]{0.8f, 0.0f, 0.0f, 1.0f},  // Red Bull red sign
+        new float[]{0.2f, 0.2f, 0.8f, 0.6f}   // Semi-transparent blue window
     );
 
-    // 在类中添加一个变量来跟踪当前主题
+    // Add a variable to track the current theme in the class
     private RaceTrack.PitStopColors currentPitStopTheme = FERRARI_THEME;
 
-    // 在类开头添加摄像头相关变量
-    private boolean isFollowCamera = false;  // 是否启用跟随视角
-    private boolean isOrbitCamera = false;    // 环绕视角（V键）
-    private boolean waitForKeyreleaseC = true; // C键防重复
-    private boolean waitForKeyreleaseV = true; // V键防重复
-    private static final float CAMERA_HEIGHT = 15.0f;       // 摄像头高度（相对于车顶）
-    private static final float CAMERA_FORWARD = 0.0f;       // 位于车头正中
-    private static final float CAMERA_LEFT = 0.0f;          // 不需要左右偏移
-    private static final float LOOK_AHEAD = 150.0f;         // 前方观察距离
-    private static final float LOOK_UP = 0.0f;              // 保持水平视线
-    private static final float SIDE_VIEW_ANGLE = (float) (2.0f * Math.PI/3);  // 增加到120度的视角
+    // Add camera related variables at the beginning of the class
+    private boolean isFollowCamera = false;  // Whether to enable follow view
+    private boolean isOrbitCamera = false;    // Orbit view (V key)
+    private boolean waitForKeyreleaseC = true; // C key anti-repeat
+    private boolean waitForKeyreleaseV = true; // V key anti-repeat
+    private static final float CAMERA_HEIGHT = 15.0f;       // Camera height (relative to car top)
+    private static final float CAMERA_FORWARD = 0.0f;       // Located at the center of the car head
+    private static final float CAMERA_LEFT = 0.0f;          // No need for left-right offset
+    private static final float LOOK_AHEAD = 150.0f;         // Forward observation distance
+    private static final float LOOK_UP = 0.0f;              // Keep horizontal line of sight
+    private static final float SIDE_VIEW_ANGLE = (float) (2.0f * Math.PI/3);  // Increase to 120-degree view
 
-    // 修改环绕视角的参数
-    private static final float ORBIT_RADIUS = 1000.0f;     // 增大轨迹半径
-    private static final float ORBIT_HEIGHT = -500.0f;    // 保持负高度
-    private static final float ORBIT_SPEED = -0.05f;        // 保持旋转速度
-    private static final float TRACK_CENTER_X = 0.0f;     // 赛道中心X坐标
-    private static final float TRACK_CENTER_Y = 0.0f;     // 赛道中心Y坐标
-    private static final float TRACK_CENTER_Z = 0.0f;  // 保持观察点Z坐标
+    // Modify orbit view parameters
+    private static final float ORBIT_RADIUS = 1000.0f;     // Increase orbit radius
+    private static final float ORBIT_HEIGHT = -500.0f;    // Keep negative height
+    private static final float ORBIT_SPEED = -0.05f;        // Keep rotation speed
+    private static final float TRACK_CENTER_X = 0.0f;     // Track center X coordinate
+    private static final float TRACK_CENTER_Y = 0.0f;     // Track center Y coordinate
+    private static final float TRACK_CENTER_Z = 0.0f;  // Keep observation point Z coordinate
 
-    private float orbitAngle = 0.0f;                      // 当前旋转角度
+    private float orbitAngle = 0.0f;                      // Current rotation angle
 
-    // 在类的开头添加自动播放相关变量
-    private boolean isAutoPlay = true;    // 默认开启自动播放
-    private float autoPlayTimer = 0.0f;   // 自动播放计时器
-    private static final float ORBIT_VIEW_DURATION = 5.0f;   // 环绕视角持续时间
-    private static final float FOLLOW_VIEW_DURATION = 3.0f;  // 跟随视角持续时间
-    private static final float TOTAL_CYCLE_TIME = ORBIT_VIEW_DURATION + FOLLOW_VIEW_DURATION;  // 总循环时间
+    // Add auto-play related variables at the beginning of the class
+    private boolean isAutoPlay = true;    // Default enable auto-play
+    private float autoPlayTimer = 0.0f;   // Auto-play timer
+    private static final float ORBIT_VIEW_DURATION = 5.0f;   // Orbit view duration
+    private static final float FOLLOW_VIEW_DURATION = 3.0f;  // Follow view duration
+    private static final float TOTAL_CYCLE_TIME = ORBIT_VIEW_DURATION + FOLLOW_VIEW_DURATION;  // Total cycle time
 
     public void start() throws IOException {
         try {
@@ -182,14 +181,14 @@ public class NascarWindow {
     }
 
     private void initGL() throws IOException {
-        // 初始化OpenGL设置
+        // Initialize OpenGL settings
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         changeOrth();
         MyArcball.startBall(0, 0, 1200, 800);
         glMatrixMode(GL_MODELVIEW);
 
-        // 注释掉环境光设置
+        // Comment out ambient light settings
         /*
         FloatBuffer lightPos = BufferUtils.createFloatBuffer(4);
         lightPos.put(10000f).put(1000f).put(1000).put(0).flip();
@@ -205,17 +204,17 @@ public class NascarWindow {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        // 加载纹理
+        // Load textures
         trackTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/track.png"));
         baseTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/base2.png"));
         groundTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/ground.png"));
         centerTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/img_1.png"));
 
-        // 初始化赛道
+        // Initialize the track
         track = new RaceTrack();
 
-        // 修改初始光照设置
-        float lightIntensity = 2.0f;  // 增加默认光照强度
+        // Modify initial lighting settings
+        float lightIntensity = 2.0f;  // Increase default light intensity
         FloatBuffer lightColor = BufferUtils.createFloatBuffer(4);
         lightColor.put(lightIntensity).put(lightIntensity).put(0.9f*lightIntensity).put(1.0f).flip();
 
@@ -227,45 +226,45 @@ public class NascarWindow {
     }
 
     private void initCars() throws IOException {
-        // 初始化赛车数组
+        // Initialize the array of cars
         cars = new Car[CAR_COUNT];
         carAngles = new float[CAR_COUNT];
         carSpeeds = new float[CAR_COUNT];
 
-        // 初始化每个赛道上的赛车
+        // Initialize each car on the track
         trackCars = new Car[CAR_COUNT - 1][CARS_PER_TRACK];
         trackCarAngles = new float[CAR_COUNT - 1][CARS_PER_TRACK];
         trackCarSpeeds = new float[CAR_COUNT - 1][CARS_PER_TRACK];
 
-        // 加载赛车纹理
+        // Load car texture
         carTexture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("res/car_texture.png"));
 
-        // 创建赛车并设置初始位置和速度
+        // Create cars and set initial positions and speeds
         for (int i = 0; i < CAR_COUNT; i++) {
-            cars[i] = new Car(CAR_COLORS[i]);  // 传入对应的颜色
+            cars[i] = new Car(CAR_COLORS[i]);  // Pass in the corresponding color
             carAngles[i] = (float)(i * (2.0f * Math.PI / CAR_COUNT));
             carSpeeds[i] = 1.0f + (float)(Math.random() * 0.5f);
 
-            // 为每个赛道添加额外的赛车
-            if (i > 0) {  // 跳过红色赛车的道
+            // Add extra cars to each track
+            if (i > 0) {  // Skip the red car's track
                 for (int j = 0; j < CARS_PER_TRACK; j++) {
                     trackCars[i - 1][j] = new Car(new float[]{(float)Math.random(), (float)Math.random(), (float)Math.random(), 1.0f});
                     trackCarAngles[i - 1][j] = (float)(j * (2.0f * Math.PI / CARS_PER_TRACK));
-                    trackCarSpeeds[i - 1][j] = carSpeeds[i];  // 统一速度
+                    trackCarSpeeds[i - 1][j] = carSpeeds[i];  // Uniform speed
                 }
             }
         }
     }
 
     private void update(float delta) {
-        // 更新每辆赛车的位置
+        // Update the position of each car
         for (int i = 0; i < CAR_COUNT; i++) {
             carAngles[i] += carSpeeds[i] * delta;
             if (carAngles[i] > 2 * Math.PI) {
                 carAngles[i] -= 2 * Math.PI;
             }
 
-            // 更新每个赛道上的额外赛车
+            // Update the extra cars on each track
             if (i > 0) {
                 for (int j = 0; j < CARS_PER_TRACK; j++) {
                     trackCarAngles[i - 1][j] += trackCarSpeeds[i - 1][j] * delta;
@@ -276,7 +275,7 @@ public class NascarWindow {
             }
         }
 
-        // 处理鼠标输入以更新视角
+        // Handle mouse input to update the view
         int MouseX = Mouse.getX();
         int MouseY = Mouse.getY();
         boolean MouseButtonPressed = Mouse.isButtonDown(0);
@@ -294,20 +293,20 @@ public class NascarWindow {
             MyArcball.updateBall(1200 - MouseX, 800 - MouseY, 1200, 800);
         }
 
-        // 处理鼠标滚轮缩放
+        // Handle mouse wheel zoom
         int dWheel = Mouse.getDWheel();
         if (dWheel < 0) {
-            OrthoNumber += 20; // 缩视角
+            OrthoNumber += 20; // Zoom out
         } else if (dWheel > 0) {
-            OrthoNumber -= 20; // 放大视角
+            OrthoNumber -= 20; // Zoom in
         }
 
-        // 处理键盘输入
+        // Handle keyboard input
         if (Keyboard.isKeyDown(Keyboard.KEY_R)) {
             MyArcball.reset();
         }
 
-        // 添加键盘控制来切换维修站主题
+        // Add keyboard control to switch pit stop themes
         if (Keyboard.isKeyDown(Keyboard.KEY_1)) {
             currentPitStopTheme = FERRARI_THEME;
         } else if (Keyboard.isKeyDown(Keyboard.KEY_2)) {
@@ -316,16 +315,16 @@ public class NascarWindow {
             currentPitStopTheme = REDBULL_THEME;
         }
 
-        // C键切换跟随视角
+        // C key to switch follow camera
         if (Keyboard.isKeyDown(Keyboard.KEY_C)) {
             if (waitForKeyreleaseC) {
                 isFollowCamera = !isFollowCamera;
                 if (isFollowCamera) {
                     isOrbitCamera = false;
-                    isAutoPlay = false;  // 关闭自动播放
+                    isAutoPlay = false;  // Disable auto-play
                 } else {
-                    isAutoPlay = true;   // 取消跟随视角时恢复自动播放
-                    autoPlayTimer = 0.0f; // 重置计时器
+                    isAutoPlay = true;   // Restore auto-play when not following camera
+                    autoPlayTimer = 0.0f; // Reset timer
                 }
                 waitForKeyreleaseC = false;
             }
@@ -333,16 +332,16 @@ public class NascarWindow {
             waitForKeyreleaseC = true;
         }
         
-        // V键切换环绕视角
+        // V key to switch orbit camera
         if (Keyboard.isKeyDown(Keyboard.KEY_V)) {
             if (waitForKeyreleaseV) {
                 isOrbitCamera = !isOrbitCamera;
                 if (isOrbitCamera) {
                     isFollowCamera = false;
-                    isAutoPlay = false;  // 关闭自动播放
+                    isAutoPlay = false;  // Disable auto-play
                 } else {
-                    isAutoPlay = true;   // 取消环绕视角时恢复自动播放
-                    autoPlayTimer = 0.0f; // 重置计时器
+                    isAutoPlay = true;   // Restore auto-play when not orbiting
+                    autoPlayTimer = 0.0f; // Reset timer
                 }
                 waitForKeyreleaseV = false;
             }
@@ -350,26 +349,26 @@ public class NascarWindow {
             waitForKeyreleaseV = true;
         }
 
-        // 自动播放逻辑
+        // Auto-play logic
         if (isAutoPlay) {
             autoPlayTimer += delta;
             if (autoPlayTimer >= TOTAL_CYCLE_TIME) {
-                autoPlayTimer -= TOTAL_CYCLE_TIME;  // 重置计时器
+                autoPlayTimer -= TOTAL_CYCLE_TIME;  // Reset timer
             }
             
-            // 根据计时器切换视角
+            // Switch view based on timer
             if (autoPlayTimer < ORBIT_VIEW_DURATION) {
-                // 环绕视角时间段
+                // Orbit view duration
                 isOrbitCamera = true;
                 isFollowCamera = false;
             } else {
-                // 跟随视角时间段
+                // Follow view duration
                 isOrbitCamera = false;
                 isFollowCamera = true;
             }
         }
         
-        // 更新轨道摄像头角度
+        // Update track camera angle
         if (isOrbitCamera) {
             orbitAngle += ORBIT_SPEED * delta;
             if (orbitAngle >= 2 * Math.PI) {
@@ -383,10 +382,10 @@ public class NascarWindow {
         glLoadIdentity();
 
         if (isFollowCamera) {
-            // 使用透视投影提供更真实的视角效果
+            // Use perspective projection for more realistic view
             gluPerspective(60.0f, 1200.0f/800.0f, 1.0f, 3000.0f);
         } else {
-            // 原有的正交投影
+            // Original orthographic projection
             glOrtho(1200 - OrthoNumber, OrthoNumber, (800 - (OrthoNumber * 0.66f)),
                     (OrthoNumber * 0.66f), 100000, -100000);
         }
@@ -402,42 +401,42 @@ public class NascarWindow {
         glPushMatrix();
         {
             if (isFollowCamera) {
-                // 获取红色赛车的位置和角度
+                // Get red car's position and angle
                 float[] carPos = cars[0].getPositionOnTrack(CAR_RADII[0], carAngles[0], BANKING_ANGLE);
                 
-                // 计算摄像位置（车头正前方）
+                // Calculate camera position (in front of car)
                 float camX = carPos[0] + (float)(CAMERA_FORWARD * Math.cos(carAngles[0]) +
                                                 LOOK_AHEAD * Math.cos(carAngles[0] + SIDE_VIEW_ANGLE));
                 float camY = carPos[1] + (float)(CAMERA_FORWARD * Math.sin(carAngles[0]) +
                                                 LOOK_AHEAD * Math.sin(carAngles[0] + SIDE_VIEW_ANGLE));
                 float camZ = carPos[2] + CAR_HEIGHTS[0] + CAMERA_HEIGHT;
                 
-                // 计算观察点（车的位置）
+                // Calculate look-at point (car position)
                 float lookX = carPos[0];
                 float lookY = carPos[1];
                 float lookZ = carPos[2] + CAR_HEIGHTS[0] + LOOK_UP;
                 
-                // 设置视角
+                // Set camera view
                 glLoadIdentity();
                 gluLookAt(camX, camY, camZ, lookX, lookY, lookZ, 0.0f, 0.0f, 1.0f);
             } else if (isOrbitCamera) {
-                // 计算摄像头位置（在赛道外围上空环绕）
+                // Calculate camera position (orbiting above track)
                 float camX = (float)(ORBIT_RADIUS * Math.cos(orbitAngle + Math.PI/2));
                 float camY = (float)(ORBIT_RADIUS * Math.sin(orbitAngle + Math.PI/2));
                 float camZ = TRACK_CENTER_Z + ORBIT_HEIGHT;
                 
-                // 设置视角
+                // Set camera view
                 glLoadIdentity();
                 
-                // 先进行整体场景的平移
-                glTranslatef(600, 400, 0);  // 将整个场景移动到正确的位置
+                // First translate entire scene
+                glTranslatef(600, 400, 0);  // Move entire scene to correct position
                 
-                // 使用gluLookAt直接设置视角，看向赛道中心
-                gluLookAt(camX, camY, camZ,                    // 摄像头位置
-                          0.0f, 0.0f, TRACK_CENTER_Z,          // 看向原点（赛道中心）
-                          0.0f, 0.0f, 1.0f);                   // 上方向
+                // Use gluLookAt to directly set view, looking at track center
+                gluLookAt(camX, camY, camZ,                    // Camera position
+                          0.0f, 0.0f, TRACK_CENTER_Z,          // Look at center point
+                          0.0f, 0.0f, 1.0f);                   // Up direction
             } else {
-                // 原有的自由视角代码
+                // Original free camera code
                 glTranslatef(600, 400, 0);
                 glRotatef(-90, 1.0f, 0.0f, 0.0f);
                 glScalef(zoomLevel, zoomLevel, zoomLevel);
@@ -448,12 +447,12 @@ public class NascarWindow {
                 glLoadMatrix(CurrentMatrix);
             }
 
-            // 调整环境光，不要完全黑暗
+            // Adjust ambient light to avoid complete darkness
             FloatBuffer ambientLight = BufferUtils.createFloatBuffer(4);
-            ambientLight.put(new float[] {0.2f, 0.2f, 0.2f, 1.0f}).flip();  // 增加环境光
+            ambientLight.put(new float[] {0.2f, 0.2f, 0.2f, 1.0f}).flip();  // Increase ambient light
             glLightModel(GL_LIGHT_MODEL_AMBIENT, ambientLight);
 
-            // 更新光源位置和属性
+            // Update light positions and properties
             float postRadius = TRACK_OUTER_RADIUS * 1.2f;
             float postHeight = 400.0f;
             
@@ -462,66 +461,63 @@ public class NascarWindow {
                 float x = (float)(postRadius * Math.cos(angle));
                 float y = (float)(postRadius * Math.sin(angle));
                 
-                // 设置光源位置
+                // Set light position
                 FloatBuffer lightPos = BufferUtils.createFloatBuffer(4);
                 lightPos.put(new float[] {x, y, postHeight, 1.0f}).flip();
                 glLight(LIGHTS[i], GL_POSITION, lightPos);
                 
-                // 设置光源方向
+                // Set light direction
                 FloatBuffer spotDir = BufferUtils.createFloatBuffer(4);
                 spotDir.put(new float[] {-x, -y, -postHeight, 0.0f}).flip();
                 glLight(LIGHTS[i], GL_SPOT_DIRECTION, spotDir);
                 
-                // 增强光源颜色强度
+                // Enhance light color intensity
                 FloatBuffer lightDiffuse = BufferUtils.createFloatBuffer(4);
-                lightDiffuse.put(new float[] {3.0f, 3.0f, 2.7f, 1.0f}).flip();  // 进一步增强漫反射
+                lightDiffuse.put(new float[] {3.0f, 3.0f, 2.7f, 1.0f}).flip();  // Further enhance diffuse
                 glLight(LIGHTS[i], GL_DIFFUSE, lightDiffuse);
                 
                 FloatBuffer lightSpecular = BufferUtils.createFloatBuffer(4);
-                lightSpecular.put(new float[] {3.0f, 3.0f, 2.7f, 1.0f}).flip();  // 进一步增强镜面反射
+                lightSpecular.put(new float[] {3.0f, 3.0f, 2.7f, 1.0f}).flip();  // Further enhance specular
                 glLight(LIGHTS[i], GL_SPECULAR, lightSpecular);
                 
-                // 调整聚光灯参数
+                // Adjust spotlight parameters
                 FloatBuffer spotCutoff = BufferUtils.createFloatBuffer(4);
-                spotCutoff.put(new float[] {75.0f, 0.0f, 0.0f, 0.0f}).flip();  // 增大光照角度
+                spotCutoff.put(new float[] {75.0f, 0.0f, 0.0f, 0.0f}).flip();  // Increase light angle
                 glLight(LIGHTS[i], GL_SPOT_CUTOFF, spotCutoff);
                 
-                // 调整衰减因子
+                // Adjust attenuation factors
                 FloatBuffer constant = BufferUtils.createFloatBuffer(4);
                 constant.put(new float[] {1.0f, 0.0f, 0.0f, 0.0f}).flip();
                 glLight(LIGHTS[i], GL_CONSTANT_ATTENUATION, constant);
                 
                 FloatBuffer linear = BufferUtils.createFloatBuffer(4);
-                linear.put(new float[] {0.0003f, 0.0f, 0.0f, 0.0f}).flip();  // 进一步减小线性衰减
+                linear.put(new float[] {0.0003f, 0.0f, 0.0f, 0.0f}).flip();  // Further reduce linear attenuation
                 glLight(LIGHTS[i], GL_LINEAR_ATTENUATION, linear);
                 
                 FloatBuffer quadratic = BufferUtils.createFloatBuffer(4);
-                quadratic.put(new float[] {0.000001f, 0.0f, 0.0f, 0.0f}).flip();  // 进一步减小二次衰减
+                quadratic.put(new float[] {0.000001f, 0.0f, 0.0f, 0.0f}).flip();  // Further reduce quadratic attenuation
                 glLight(LIGHTS[i], GL_QUADRATIC_ATTENUATION, quadratic);
             }
             
-            // 绘制赛道和大灯 - 不传递墙面纹理
+            // Draw track and lights - no wall texture passed
             track.drawTrack(TRACK_INNER_RADIUS, TRACK_OUTER_RADIUS, 0.0f, BANKING_ANGLE, 60,
-                          trackTexture, null, baseTexture, groundTexture, currentPitStopTheme);  // 将wallTexture替换为null
-            track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, postHeight);  // 添加postHeight参数
+                          trackTexture, null, baseTexture, groundTexture, currentPitStopTheme);  // Replace wallTexture with null
+            track.drawLightPosts(TRACK_OUTER_RADIUS, -60.0f, postHeight);  // Add postHeight parameter
 
-            // 添加中心区域的装饰
+            // Add center area decorations
             glPushMatrix();
             {
-                // 启用混合
+                // Enable blending
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
                 
-                // 禁用光照以确保纹理颜色正确显示
-                //glDisable(GL_LIGHTING);
-                
-                // 启用纹理
+                // Enable texture
                 glEnable(GL_TEXTURE_2D);
                 centerTexture.bind();
                 
-                // 绘制一个平面，尺寸略小于内圈
-                float size = TRACK_INNER_RADIUS * 0.3f;  // 可以调整这个系数来改变大小
-                float height = 1.0f;  // 与阴影高度相同，确保在地面上方一点
+                // Draw a plane slightly smaller than inner circle
+                float size = TRACK_INNER_RADIUS * 0.3f;  // Adjust this coefficient to change size
+                float height = 1.0f;  // Same as shadow height to ensure above ground
                 
                 glBegin(GL_QUADS);
                 {
@@ -532,62 +528,62 @@ public class NascarWindow {
                 }
                 glEnd();
                 
-                // 恢复状态
+                // Restore states
                 glDisable(GL_TEXTURE_2D);
                 glEnable(GL_LIGHTING);
                 glDisable(GL_BLEND);
             }
             glPopMatrix();
             
-            // 绘制所有赛车
+            // Draw all cars
             for (int i = 0; i < CAR_COUNT; i++) {
                 float[] carPos = cars[i].getPositionOnTrack(CAR_RADII[i], carAngles[i], BANKING_ANGLE);
                 
-                // 传入车辆索引i
+                // Pass car index i
                 drawCarShadow(carPos, CAR_RADII[i], carAngles[i], 20.0f, i);
                 
-                // 然后绘制赛车
+                // Then draw car
                 glPushMatrix();
                 {
                     glTranslatef(carPos[0], carPos[1], carPos[2] + CAR_HEIGHTS[i]);
 
-                    // 2. 向赛道内侧倾斜
+                    // 2. Tilt towards track inside
                     float tiltDirection = (float)Math.toDegrees(carAngles[i]) + 90;
                     glRotatef(tiltDirection, 0.0f, 0.0f, 1.0f);
                     glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
                     glRotatef(-tiltDirection, 0.0f, 0.0f, 1.0f);
 
-                    // 3. 最后设置车身朝向
+                    // 3. Finally set car orientation
                     glRotatef(carPos[3], 0.0f, 0.0f, 1.0f);
 
-                    // 绘制赛车
+                    // Draw car
                     cars[i].drawCar(carTexture, 20.0f);
                 }
                 glPopMatrix();
 
-                // 绘制每个赛道上的额外赛车
+                // Draw extra cars on each track
                 if (i > 0) {
                     for (int j = 0; j < CARS_PER_TRACK; j++) {
                         float[] extraCarPos = trackCars[i - 1][j].getPositionOnTrack(CAR_RADII[i], trackCarAngles[i - 1][j], BANKING_ANGLE);
 
-                        // 绘制额外赛车的阴影
+                        // Draw extra car shadow
                         drawCarShadow(extraCarPos, CAR_RADII[i], trackCarAngles[i - 1][j], 20.0f, i);
 
-                        // 然后绘制额外赛车
+                        // Then draw extra car
                         glPushMatrix();
                         {
                             glTranslatef(extraCarPos[0], extraCarPos[1], extraCarPos[2] + CAR_HEIGHTS[i]);
 
-                            // 2. 向赛道内侧倾斜
+                            // 2. Tilt towards track inside
                             float extraTiltDirection = (float)Math.toDegrees(trackCarAngles[i - 1][j]) + 90;
                             glRotatef(extraTiltDirection, 0.0f, 0.0f, 1.0f);
                             glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
                             glRotatef(-extraTiltDirection, 0.0f, 0.0f, 1.0f);
 
-                            // 3. 最后设置车身朝向
+                            // 3. Finally set car orientation
                             glRotatef(extraCarPos[3], 0.0f, 0.0f, 1.0f);
 
-                            // 绘制额外赛车
+                            // Draw extra car
                             trackCars[i - 1][j].drawCar(carTexture, 20.0f);
                         }
                         glPopMatrix();
@@ -599,53 +595,53 @@ public class NascarWindow {
     }
 
     private void drawCarShadow(float[] carPos, float radius, float angle, float scale, int carIndex) {
-        // 计算赛车在平面上的距离（相对于赛道中心）
+        // Calculate car distance on plane (relative to track center)
         float distanceFromCenter = (float)Math.sqrt(carPos[0] * carPos[0] + carPos[1] * carPos[1]);
         
-        // 只在赛道范围内绘制阴影
+        // Only draw shadows within track bounds
         if (distanceFromCenter < TRACK_OUTER_RADIUS && distanceFromCenter > TRACK_INNER_RADIUS) {
             glPushMatrix();
             {
-                // 禁用深度写入，但保持深度测试
+                // Disable depth write but keep depth testing
                 glDepthMask(false);
                 
-                // 启用混合以实现半透明效果
+                // Enable blending for transparency
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 
-                // 禁用光照以确保影颜色正确
+                // Disable lighting for correct shadow color
                 glDisable(GL_LIGHTING);
                 
-                // 设置阴影颜色
+                // Set shadow color
                 glColor4f(SHADOW_COLOR[0], SHADOW_COLOR[1], SHADOW_COLOR[2], SHADOW_COLOR[3]);
                 
-                // 使用对应车辆的阴影高度
+                // Use corresponding car's shadow height
                 glTranslatef(carPos[0], carPos[1], SHADOW_HEIGHTS[carIndex]);
                 
-                // 根据赛道倾斜角度旋转阴影
+                // Rotate shadow based on track banking angle
                 float tiltDirection = (float)Math.toDegrees(angle) + 90;
                 glRotatef(tiltDirection, 0.0f, 0.0f, 1.0f);
                 glRotatef((float) -Math.toDegrees(BANKING_ANGLE), 1.0f, 0.0f, 0.0f);
                 glRotatef(-tiltDirection, 0.0f, 0.0f, 1.0f);
                 
-                // 扁并放大影
+                // Flatten and enlarge shadow
                 glScalef(scale * 1.2f, scale * 0.8f, 1.0f);
                 
-                // 绘制简单的椭圆形阴影
+                // Draw simple elliptical shadow
                 glBegin(GL_TRIANGLE_FAN);
                 {
-                    glVertex3f(0.0f, 0.0f, 0.0f);  // 中心点
+                    glVertex3f(0.0f, 0.0f, 0.0f);  // Center point
                     int segments = 32;
                     for (int i = 0; i <= segments; i++) {
                         float theta = (float)(i * 2.0f * Math.PI / segments);
-                        float x = (float)Math.cos(theta) * 2.0f;  // 调整这个系数来改变阴影长度
-                        float y = (float)Math.sin(theta);         // 调整这个系数来改变阴影宽度
+                        float x = (float)Math.cos(theta) * 2.0f;  // Adjust this coefficient to change shadow length
+                        float y = (float)Math.sin(theta);         // Adjust this coefficient to change shadow width
                         glVertex3f(x, y, 0.0f);
                     }
                 }
                 glEnd();
                 
-                // 恢复状态
+                // Restore states
                 glEnable(GL_LIGHTING);
                 glDisable(GL_BLEND);
                 glDepthMask(true);

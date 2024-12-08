@@ -11,13 +11,13 @@ import java.nio.FloatBuffer;
 
 public class RaceTrack {
     
-    private Sphere sphere = new Sphere();  // 添加成员变量
+    private Sphere sphere = new Sphere();  // Add member variable
     
     public void drawTrack(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture trackTexture, Texture wallTexture, Texture baseTexture, Texture groundTexture, PitStopColors pitStopColors) {
-        // 计算赛道倾斜后的最大高度差
+        // Calculate the maximum height difference after the track is tilted
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
-        // 调整基准高度，使内侧与地面齐平
+        // Adjust the base height to make the inner side level with the ground
         float baseHeight = height;
         float trackHeight = height + maxBankHeight;
         
@@ -26,10 +26,10 @@ public class RaceTrack {
         drawTrackWalls(innerRadius, outerRadius, baseHeight, bankingAngle, segments, null);
         drawGround(innerRadius, outerRadius, baseHeight, segments, groundTexture);
         
-        // 使用传入的颜色主题
+        // Use the color theme passed in
         drawPitStop(innerRadius, pitStopColors);
         
-        // 添加内部道路
+        // Add internal road
         drawInnerRoad(innerRadius);
     }
     
@@ -37,7 +37,7 @@ public class RaceTrack {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
-        // 设置基座材质
+        // Set the base material
         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
         matEmission.put(new float[] {0.3f, 0.3f, 0.3f, 1.0f}).flip();
         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
@@ -53,34 +53,34 @@ public class RaceTrack {
         glEnable(GL_TEXTURE_2D);
         texture.bind();
         
-        // 1. 绘制顶面（与赛道接触的面）
+        // 1. Draw the top surface (the surface in contact with the track)
         glBegin(GL_QUADS);
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
-            // 内圈顶点
+            // Inner circle vertex
             float x1 = (float) (innerRadius * Math.cos(theta));
             float y1 = (float) (innerRadius * Math.sin(theta));
-            float z1 = 0;  // 基准高度为0
+            float z1 = 0;  // Base height is 0
             
             float x2 = (float) (innerRadius * Math.cos(theta + incTheta));
             float y2 = (float) (innerRadius * Math.sin(theta + incTheta));
             float z2 = 0;
             
-            // 外圈顶点
+            // Outer circle vertex
             float x3 = (float) (outerRadius * Math.cos(theta));
             float y3 = (float) (outerRadius * Math.sin(theta));
-            float z3 = maxBankHeight;  // 外圈升高
+            float z3 = maxBankHeight;  // Outer circle is raised
             
             float x4 = (float) (outerRadius * Math.cos(theta + incTheta));
             float y4 = (float) (outerRadius * Math.sin(theta + incTheta));
             float z4 = maxBankHeight;
             
-            // 计算法向量
+            // Calculate the normal vector
             Vector4f v1 = new Vector4f(x3 - x1, y3 - y1, z3 - z1, 0);
             Vector4f v2 = new Vector4f(x2 - x1, y2 - y1, z2 - z1, 0);
             Vector4f normal = v1.cross(v2).Normal();
             glNormal3f(normal.x, normal.y, normal.z);
             
-            // 设置纹理坐标和顶点
+            // Set the texture coordinates and vertices
             glTexCoord2f(theta/(2*(float)Math.PI), 0);
             glVertex3f(x1, y1, z1);
             glTexCoord2f((theta+incTheta)/(2*(float)Math.PI), 0);
@@ -92,7 +92,7 @@ public class RaceTrack {
         }
         glEnd();
         
-        // 2. 绘制外侧垂直面
+        // 2. Draw the outer vertical surface
         glBegin(GL_QUADS);
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
             float x1 = (float) (outerRadius * Math.cos(theta));
@@ -100,12 +100,12 @@ public class RaceTrack {
             float x2 = (float) (outerRadius * Math.cos(theta + incTheta));
             float y2 = (float) (outerRadius * Math.sin(theta + incTheta));
             
-            // 底部顶点
+            // Bottom vertex
             glTexCoord2f(theta/(2*(float)Math.PI), 0);
             glVertex3f(x1, y1, -height);
             glTexCoord2f((theta+incTheta)/(2*(float)Math.PI), 0);
             glVertex3f(x2, y2, -height);
-            // 顶部顶点
+            // Top vertex
             glTexCoord2f((theta+incTheta)/(2*(float)Math.PI), 1);
             glVertex3f(x2, y2, maxBankHeight);
             glTexCoord2f(theta/(2*(float)Math.PI), 1);
@@ -113,7 +113,7 @@ public class RaceTrack {
         }
         glEnd();
         
-        // 3. 绘制内侧垂直面
+        // 3. Draw the inner vertical surface
         glBegin(GL_QUADS);
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
             float x1 = (float) (innerRadius * Math.cos(theta));
@@ -132,7 +132,7 @@ public class RaceTrack {
         }
         glEnd();
         
-        // 4. 绘制底面
+        // 4. Draw the bottom surface
         glBegin(GL_QUADS);
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
             float x1 = (float) (innerRadius * Math.cos(theta));
@@ -144,7 +144,7 @@ public class RaceTrack {
             float x4 = (float) (outerRadius * Math.cos(theta));
             float y4 = (float) (outerRadius * Math.sin(theta));
             
-            glNormal3f(0, 0, -1);  // 底面法向量朝下
+            glNormal3f(0, 0, -1);  // Bottom surface normal vector points down
             
             glTexCoord2f(theta/(2*(float)Math.PI), 0);
             glVertex3f(x1, y1, -height);
@@ -159,14 +159,14 @@ public class RaceTrack {
         
         glDisable(GL_TEXTURE_2D);
         
-        // 重置材质
+        // Reset the material
         resetMaterial();
     }
     
     private void drawTrackSurface(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
         
-        // 设置赛道表面材质
+        // Set the track surface material
         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
         matEmission.put(new float[] {0.4f, 0.4f, 0.4f, 1.0f}).flip();
         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
@@ -184,35 +184,35 @@ public class RaceTrack {
         
         glBegin(GL_QUADS);
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta) {
-            // 计算四个顶点
-            // 内圈顶点1
+            // Calculate four vertices
+            // Inner circle vertex 1
             float x1 = (float) (innerRadius * Math.cos(theta));
             float y1 = (float) (innerRadius * Math.sin(theta));
-            float z1 = height;  // 内圈高度保持为基准高度
+            float z1 = height;  // Inner circle height remains at base height
             
-            // 内圈顶点2
+            // Inner circle vertex 2
             float x2 = (float) (innerRadius * Math.cos(theta + incTheta));
             float y2 = (float) (innerRadius * Math.sin(theta + incTheta));
-            float z2 = height;  // 内圈高度保持为基准高度
+            float z2 = height;  // Inner circle height remains at base height
             
-            // 外圈顶点1
+            // Outer circle vertex 1
             float x3 = (float) (outerRadius * Math.cos(theta));
             float y3 = (float) (outerRadius * Math.sin(theta));
-            float z3 = height + (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius)); // 外圈升高
+            float z3 = height + (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius)); // Outer circle is raised
             
-            // 外圈顶点2
+            // Outer circle vertex 2
             float x4 = (float) (outerRadius * Math.cos(theta + incTheta));
             float y4 = (float) (outerRadius * Math.sin(theta + incTheta));
-            float z4 = height + (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius)); // 外圈升高
+            float z4 = height + (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius)); // Outer circle is raised
             
-            // 计算法向量
+            // Calculate the normal vector
             Vector4f v1 = new Vector4f(x3 - x1, y3 - y1, z3 - z1, 0);
             Vector4f v2 = new Vector4f(x2 - x1, y2 - y1, z2 - z1, 0);
             Vector4f normal = v1.cross(v2).Normal();
             
             glNormal3f(normal.x, normal.y, normal.z);
             
-            // 设置纹理坐标和顶点
+            // Set the texture coordinates and vertices
             float texX1 = theta / (2 * (float)Math.PI);
             float texX2 = (theta + incTheta) / (2 * (float)Math.PI);
             
@@ -229,27 +229,26 @@ public class RaceTrack {
         
         glDisable(GL_TEXTURE_2D);
         
-        // 重置材质
+        // Reset the material
         resetMaterial();
     }
-    
     private void drawTrackWalls(float innerRadius, float outerRadius, float height, float bankingAngle, int segments, Texture texture) {
         float incTheta = (float) ((2.0f * Math.PI) / segments);
         float wallHeight = 20.0f;
         float maxBankHeight = (float)(Math.sin(bankingAngle) * (outerRadius - innerRadius));
         
-        // 禁用纹理和光照
+        // Disable texture and lighting
         glDisable(GL_TEXTURE_2D);
         glDisable(GL_LIGHTING);
         
-        // 启用深度测试
+        // Enable depth testing
         glEnable(GL_DEPTH_TEST);
         
-        // 启用混合
+        // Enable blending
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         
-        // 先绘制透明玻璃墙，但不写入深度缓冲
+        // Draw transparent glass walls first, but do not write to depth buffer
         glDepthMask(false);
         glColor4f(0.6f, 0.8f, 1.0f, 0.15f);
         glBegin(GL_QUADS);
@@ -268,17 +267,17 @@ public class RaceTrack {
         }
         glEnd();
         
-        // 恢复深度缓冲写入，为框架线条绘制
+        // Restore depth buffer writing for frame line drawing
         glDepthMask(true);
         
-        // 设置线条宽度
+        // Set line width
         glLineWidth(2.0f);
         
-        // 绘制白色框架 - 使用完全不透明的白色
+        // Draw white frame - use completely opaque white
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         
-        // 水平框架线（每隔一定高度）
-        int horizontalDivisions = 4;  // 水平分段数
+        // Horizontal frame lines (spaced at regular intervals)
+        int horizontalDivisions = 4;  // Number of horizontal divisions
         float heightInterval = wallHeight / horizontalDivisions;
         
         for (int h = 0; h <= horizontalDivisions; h++) {
@@ -292,8 +291,8 @@ public class RaceTrack {
             glEnd();
         }
         
-        // 垂直支柱（每隔几个段落）
-        int verticalInterval = 4;  // 每隔4个段落绘制一个支柱
+        // Vertical supports (spaced at regular intervals)
+        int verticalInterval = 4;  // Draw a support every 4 segments
         for (float theta = 0; theta < 2 * Math.PI; theta += incTheta * verticalInterval) {
             float x = (float) (outerRadius * Math.cos(theta));
             float y = (float) (outerRadius * Math.sin(theta));
@@ -304,7 +303,7 @@ public class RaceTrack {
             glEnd();
         }
         
-        // 恢复所有状态
+        // Restore all states
         glLineWidth(1.0f);
         glEnable(GL_LIGHTING);
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -312,38 +311,38 @@ public class RaceTrack {
     }
     
     private void drawGround(float innerRadius, float outerRadius, float height, int segments, Texture texture) {
-        float groundSize = outerRadius * 3.0f;  // 使地面足够大以覆盖整个场景
+        float groundSize = outerRadius * 3.0f;  // Make the ground large enough to cover the entire scene
         
-        // 设置地面材质
+        // Set ground material
         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
-        matEmission.put(new float[] {0.5f, 0.5f, 0.5f, 1.0f}).flip();  // 增加光
+        matEmission.put(new float[] {0.5f, 0.5f, 0.5f, 1.0f}).flip();  // Add light
         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
         
         FloatBuffer matAmbient = BufferUtils.createFloatBuffer(4);
-        matAmbient.put(new float[] {0.9f, 0.9f, 0.9f, 1.0f}).flip();  // 增加环境光反射
+        matAmbient.put(new float[] {0.9f, 0.9f, 0.9f, 1.0f}).flip();  // Add ambient light reflection
         glMaterial(GL_FRONT, GL_AMBIENT, matAmbient);
         
         FloatBuffer matDiffuse = BufferUtils.createFloatBuffer(4);
-        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();  // 保持漫反射
+        matDiffuse.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();  // Keep diffuse reflection
         glMaterial(GL_FRONT, GL_DIFFUSE, matDiffuse);
         
-        // 添加镜面反射
+        // Add specular reflection
         FloatBuffer matSpecular = BufferUtils.createFloatBuffer(4);
         matSpecular.put(new float[] {1.0f, 1.0f, 1.0f, 1.0f}).flip();
         glMaterial(GL_FRONT, GL_SPECULAR, matSpecular);
         
-        // 设置镜面反射的亮度（光泽度）
+        // Set the brightness (glossiness) of the specular reflection
         glMaterialf(GL_FRONT, GL_SHININESS, 128.0f);
         
         glEnable(GL_TEXTURE_2D);
         texture.bind();
         
-        // 绘制单个大方形作为地面
+        // Draw a single large square as the ground
         glBegin(GL_QUADS);
-        glNormal3f(0, 0, 1);  // 地面法向量朝上
+        glNormal3f(0, 0, 1);  // Ground normal vector points up
         
-        // 使用更大的纹理重复次数来避免纹理拉伸
-        float texRepeat = 8.0f;  // 纹理重复次数
+        // Use larger texture repeat count to avoid texture stretching
+        float texRepeat = 8.0f;  // Texture repeat count
         
         glTexCoord2f(0, 0);
         glVertex3f(-groundSize, -groundSize, -height);
@@ -360,7 +359,7 @@ public class RaceTrack {
         
         glDisable(GL_TEXTURE_2D);
         
-        // 重置材质
+        // Reset the material
         resetMaterial();
     }
     
@@ -378,7 +377,7 @@ public class RaceTrack {
             {
                 glTranslatef(x, y, adjustedBaseHeight);
                 
-                // 1. 绘制底座
+                // 1. Draw the base
                 glColor3f(0.3f, 0.3f, 0.3f);
                 glPushMatrix();
                 {
@@ -387,7 +386,7 @@ public class RaceTrack {
                 }
                 glPopMatrix();
                 
-                // 2. 绘制主杆
+                // 2. Draw the main pole
                 glColor3f(0.4f, 0.4f, 0.4f);
                 glPushMatrix();
                 {
@@ -397,7 +396,7 @@ public class RaceTrack {
                 }
                 glPopMatrix();
                 
-                // 3. 绘制顶部连接件
+                // 3. Draw the top connector
                 glColor3f(0.35f, 0.35f, 0.35f);
                 glPushMatrix();
                 {
@@ -407,14 +406,14 @@ public class RaceTrack {
                 }
                 glPopMatrix();
                 
-                // 4. 绘制横臂
+                // 4. Draw the horizontal arm
                 glPushMatrix();
                 {
                     glTranslatef(0, 0, postHeight - 5.0f);
                     float armAngle = (float)Math.toDegrees(angle);
                     glRotatef(armAngle + 180, 0, 0, 1);
                     
-                    // 主横臂
+                    // Main horizontal arm
                     glColor3f(0.4f, 0.4f, 0.4f);
                     glPushMatrix();
                     {
@@ -426,20 +425,20 @@ public class RaceTrack {
                 }
                 glPopMatrix();
 
-                // 5. 绘制灯具组件
+                // 5. Draw the lamp component
                 glPushMatrix();
                 {
-                    // 移动到灯具位置
+                    // Move to the lamp position
                     float lightX = -(float)(60.0f * Math.cos(angle));
                     float lightY = -(float)(60.0f * Math.sin(angle));
                     float lightZ = postHeight - 5.0f;
                     glTranslatef(lightX, lightY, lightZ);
 
-                    // 旋转灯具朝向
+                    // Rotate the lamp direction
                     glRotatef((float)Math.toDegrees(angle) + 90, 0, 0, 1);
                     glRotatef(60, 1, 0, 0);
 
-                    // 主体外壳
+                    // Main body shell
                     glColor3f(0.2f, 0.2f, 0.2f);
                     glPushMatrix();
                     {
@@ -448,19 +447,19 @@ public class RaceTrack {
                     }
                     glPopMatrix();
 
-                    // 散热片（在外壳后部）
+                    // Heat sink (at the back of the shell)
                     glColor3f(0.3f, 0.3f, 0.3f);
                     for(int fin = 0; fin < 8; fin++) {
                         glPushMatrix();
                         {
-                            glTranslatef(0, 0, -8.0f + fin * 2.0f);  // 从外壳后部开始
-                            glScalef(35.0f, 30.0f, 0.5f);  // 略大于外壳
+                            glTranslatef(0, 0, -8.0f + fin * 2.0f);  // Start from the back of the shell
+                            glScalef(35.0f, 30.0f, 0.5f);  // Slightly larger than the shell
                             drawBox();
                         }
                         glPopMatrix();
                     }
 
-                    // 前框（装饰性边框）
+                    // Front frame (decorative border)
                     glColor3f(0.25f, 0.25f, 0.25f);
                     glPushMatrix();
                     {
@@ -470,10 +469,10 @@ public class RaceTrack {
                     }
                     glPopMatrix();
 
-                    // 发光部分
+                    // Luminous part
                     glPushMatrix();
                     {
-                        // 设置发光材质
+                        // Set the luminous material
                         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
                         matEmission.put(new float[] {1.0f, 1.0f, 0.8f, 1.0f}).flip();
                         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
@@ -487,7 +486,7 @@ public class RaceTrack {
                     }
                     glPopMatrix();
 
-                    // 光源位置标记（黄色小球）
+                    // Light source position marker (yellow ball)
                     glPushMatrix();
                     {
                         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
@@ -502,17 +501,17 @@ public class RaceTrack {
                     }
                     glPopMatrix();
                     
-                    // 6. 在光源位置绘制标记球体
+                    // 6. Draw a marker sphere at the light source position
                     glPushMatrix();
                     {
-                        // 设置发光材质
+                        // Set the luminous material
                         FloatBuffer matEmission = BufferUtils.createFloatBuffer(4);
                         matEmission.put(new float[] {1.0f, 1.0f, 0.0f, 1.0f}).flip();
                         glMaterial(GL_FRONT, GL_EMISSION, matEmission);
                         
-                        glColor3f(1.0f, 1.0f, 0.0f);  // 黄色
-                        glTranslatef(0, 0, 7.0f);  // 移动到灯具前方
-                        sphere.drawSphere(3.0f, 16, 16);  // 使用项目中的Sphere类
+                        glColor3f(1.0f, 1.0f, 0.0f);  // Yellow
+                        glTranslatef(0, 0, 7.0f);  // Move to the front of the lamp
+                        sphere.drawSphere(3.0f, 16, 16);  // Use the Sphere class in the project
                         
                         resetMaterial();
                     }
@@ -527,7 +526,7 @@ public class RaceTrack {
     private void drawCylinder(int segments) {
         float angleIncrement = 360.0f / segments;
         
-        // 绘制圆柱体侧面
+        // Draw the cylinder side
         glBegin(GL_QUAD_STRIP);
         for (int i = 0; i <= segments; i++) {
             float angle = (float)Math.toRadians(i * angleIncrement);
@@ -540,7 +539,7 @@ public class RaceTrack {
         }
         glEnd();
         
-        // 绘制顶面和底面
+        // Draw the top and bottom
         glBegin(GL_TRIANGLE_FAN);
         glNormal3f(0, 0, 1);
         glVertex3f(0, 0, 1);
@@ -559,41 +558,40 @@ public class RaceTrack {
         }
         glEnd();
     }
-    
     private void drawBox() {
         glBegin(GL_QUADS);
         {
-            // 前面
+            // Front
             glVertex3f(-0.5f, -0.5f, 0.5f);
             glVertex3f(0.5f, -0.5f, 0.5f);
             glVertex3f(0.5f, 0.5f, 0.5f);
             glVertex3f(-0.5f, 0.5f, 0.5f);
             
-            // 后面
+            // Back
             glVertex3f(-0.5f, -0.5f, -0.5f);
             glVertex3f(-0.5f, 0.5f, -0.5f);
             glVertex3f(0.5f, 0.5f, -0.5f);
             glVertex3f(0.5f, -0.5f, -0.5f);
             
-            // 顶面
+            // Top
             glVertex3f(-0.5f, 0.5f, -0.5f);
             glVertex3f(-0.5f, 0.5f, 0.5f);
             glVertex3f(0.5f, 0.5f, 0.5f);
             glVertex3f(0.5f, 0.5f, -0.5f);
             
-            // 底面
+            // Bottom
             glVertex3f(-0.5f, -0.5f, -0.5f);
             glVertex3f(0.5f, -0.5f, -0.5f);
             glVertex3f(0.5f, -0.5f, 0.5f);
             glVertex3f(-0.5f, -0.5f, 0.5f);
             
-            // 右面
+            // Right
             glVertex3f(0.5f, -0.5f, -0.5f);
             glVertex3f(0.5f, 0.5f, -0.5f);
             glVertex3f(0.5f, 0.5f, 0.5f);
             glVertex3f(0.5f, -0.5f, 0.5f);
             
-            // 左面
+            // Left
             glVertex3f(-0.5f, -0.5f, -0.5f);
             glVertex3f(-0.5f, -0.5f, 0.5f);
             glVertex3f(-0.5f, 0.5f, 0.5f);
@@ -602,7 +600,7 @@ public class RaceTrack {
         glEnd();
     }
     
-    // 添加一个辅助方法来重置材质
+    // Add a helper method to reset the material
     private void resetMaterial() {
         FloatBuffer resetEmission = BufferUtils.createFloatBuffer(4);
         resetEmission.put(new float[] {0.0f, 0.0f, 0.0f, 1.0f}).flip();
@@ -617,14 +615,14 @@ public class RaceTrack {
         glMaterial(GL_FRONT, GL_DIFFUSE, resetDiffuse);
     }
     
-    // 在RaceTrack类中添加一个新的颜色主题结构
+    // Add a new color theme structure in the RaceTrack class
     public static class PitStopColors {
-        public float[] mainColor;      // 主建筑颜色
-        public float[] roofColor;      // 屋顶颜色
-        public float[] serviceColor;   // 维修区颜色
-        public float[] equipmentColor; // 设备颜色
-        public float[] signColor;      // 标志牌颜色
-        public float[] windowColor;    // 窗户颜色
+        public float[] mainColor;      // Main building color
+        public float[] roofColor;      // Roof color
+        public float[] serviceColor;   // Service area color
+        public float[] equipmentColor; // Equipment color
+        public float[] signColor;      // Sign color
+        public float[] windowColor;    // Window color
         
         public PitStopColors(
             float[] mainColor,
@@ -642,20 +640,20 @@ public class RaceTrack {
             this.windowColor = windowColor;
         }
         
-        // 默认红色主题
+        // Default red theme
         public static PitStopColors getDefaultTheme() {
             return new PitStopColors(
-                new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 鲜红色主建筑
-                new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
-                new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
-                new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
-                new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+                new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // Bright red main building
+                new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // Dark red roof
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // Dark gray service area
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // Black equipment
+                new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // Bright red sign
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // Semi-transparent gray window
             );
         }
     }
     
-    // 修改drawPitStop方法
+    // Modify the drawPitStop method
     public void drawPitStop(float innerRadius, PitStopColors colors) {
         float pitStopSize = 80.0f;
         float pitStopX = 150.0f;
@@ -663,53 +661,53 @@ public class RaceTrack {
         float spacing = 200.0f;
         float trackRadius = 700.0f;
         
-        // 定义不同的颜色主题
+        // Define different color themes
         PitStopColors[] themes = {
-            new PitStopColors(              // 红色主题 - 法拉利
-                new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // 鲜红色主建筑
-                new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // 深红色屋顶
-                new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // 深灰色维修区
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // 黑色设备
-                new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // 亮红色标志牌
-                new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // 半透明灰色窗户
+            new PitStopColors(              // Red theme - Ferrari
+                new float[]{0.9f, 0.1f, 0.1f, 1.0f},  // Bright red main building
+                new float[]{0.7f, 0.05f, 0.05f, 1.0f}, // Dark red roof
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},   // Dark gray service area
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},   // Black equipment
+                new float[]{1.0f, 0.1f, 0.1f, 1.0f},   // Bright red sign
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}    // Semi-transparent gray window
             ),
-            new PitStopColors(              // 银色主题 - 梅赛德斯
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 银色主建筑
-                new float[]{0.0f, 0.0f, 0.0f, 1.0f},  // 深银色屋顶
-                new float[]{0.3f, 0.3f, 0.3f, 1.0f},  // 灰色维修区
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-                new float[]{0.0f, 0.6f, 0.2f, 1.0f},  // 绿色标志牌（梅赛德斯标志色）
-                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // 半透明灰色窗户
+            new PitStopColors(              // Silver theme - Mercedes
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // Silver main building
+                new float[]{0.0f, 0.0f, 0.0f, 1.0f},  // Dark silver roof
+                new float[]{0.3f, 0.3f, 0.3f, 1.0f},  // Gray service area
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // Black equipment
+                new float[]{0.0f, 0.6f, 0.2f, 1.0f},  // Green sign (Mercedes logo color)
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // Semi-transparent gray window
             ),
-            new PitStopColors(              // 深蓝主题 - 红牛
-                new float[]{0.3f, 0.0f, 0.0f, 1.0f},  // 深蓝色主建筑
-                new float[]{0.0f, 0.0f, 0.1f, 1.0f},  // 更深蓝色屋顶
-                new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-                new float[]{0.3f, 0.0f, 0.0f, 1.0f},  // 红色标志牌（红牛标志色）
-                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // 半透明灰色窗户
+            new PitStopColors(              // Dark blue theme - Red Bull
+                new float[]{0.3f, 0.0f, 0.0f, 1.0f},  // Dark blue main building
+                new float[]{0.0f, 0.0f, 0.1f, 1.0f},  // Darker blue roof
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // Dark gray service area
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // Black equipment
+                new float[]{0.3f, 0.0f, 0.0f, 1.0f},  // Red sign (Red Bull logo color)
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // Semi-transparent gray window
             ),
-            new PitStopColors(              // 橙色主题 - 迈凯伦
-                new float[]{0.8f, 0.1f, 0.0f, 1.0f},  // 橙色主建筑
-                new float[]{0.0f, 0.3f, 0.5f, 1.0f},  // 深橙色屋顶
-                new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // 深灰色维修区
-                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // 黑色设备
-                new float[]{0.8f, 0.1f, 0.0f, 1.0f},  // 蓝色标志牌（迈凯伦标志色）
-                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // 半透明灰色窗户
+            new PitStopColors(              // Orange theme - McLaren
+                new float[]{0.8f, 0.1f, 0.0f, 1.0f},  // Orange main building
+                new float[]{0.0f, 0.3f, 0.5f, 1.0f},  // Dark orange roof
+                new float[]{0.2f, 0.2f, 0.2f, 1.0f},  // Dark gray service area
+                new float[]{0.1f, 0.1f, 0.1f, 1.0f},  // Black equipment
+                new float[]{0.8f, 0.1f, 0.0f, 1.0f},  // Blue sign (McLaren logo color)
+                new float[]{0.2f, 0.2f, 0.2f, 0.6f}   // Semi-transparent gray window
             )
         };
         
-        // 绘制每个换胎站的阴影和主体
+        // Draw the shadow and body of each pit stop
         for (int i = 0; i < themes.length; i++) {
             float yOffset = (i - (themes.length - 1) / 2.0f) * spacing;
             
-            // 计算最近的灯光位置
+            // Calculate the nearest light position
             float lightAngle = (float)(i * Math.PI / 2);
             float lightX = (float)(trackRadius * 1.2f * Math.cos(lightAngle));
             float lightY = (float)(trackRadius * 1.2f * Math.sin(lightAngle));
             float lightZ = 400.0f;
             
-            // 绘制阴影
+            // Draw the shadow
             glPushMatrix();
             {
                 glDepthMask(false);
@@ -717,42 +715,42 @@ public class RaceTrack {
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glDisable(GL_LIGHTING);
                 
-                // 设置阴影颜色
+                // Set the shadow color
                 glColor4f(0.1f, 0.1f, 0.1f, 0.3f);
                 
-                // 计算阴影投影矩阵
+                // Calculate the shadow projection matrix
                 FloatBuffer shadowMatrix = calculateShadowMatrix(
-                    new float[]{lightX, lightY, lightZ, 1.0f},  // 光源位置
-                    new float[]{0, 0, 1, 0}                     // 地面法向量
+                    new float[]{lightX, lightY, lightZ, 1.0f},  // Light position
+                    new float[]{0, 0, 1, 0}                     // Ground normal vector
                 );
                 
-                // 应用投影矩阵
+                // Apply the projection matrix
                 glPushMatrix();
                 {
-                    glTranslatef(pitStopX, yOffset, 1.0f);  // 移动到换胎站位置，略高于地面
+                    glTranslatef(pitStopX, yOffset, 1.0f);  // Move to the pit stop position, slightly above the ground
                     glMultMatrix(shadowMatrix);
                     
-                    // 绘制换胎站的投影
+                    // Draw the shadow of the pit stop
                     glRotatef(90, 0.0f, 0.0f, 1.0f);
                     drawPitStopMainBuilding(pitStopSize, themes[i]);
                     drawServiceArea(pitStopSize, themes[i]);
-                    // 不绘制装饰部分的阴影以简化
+                    // Do not draw the shadow of the decoration to simplify
                 }
                 glPopMatrix();
                 
-                // 恢复状态
+                // Restore the state
                 glEnable(GL_LIGHTING);
                 glDisable(GL_BLEND);
                 glDepthMask(true);
             }
             glPopMatrix();
             
-            // 绘制换胎站主体
+            // Draw the body of the pit stop
             glPushMatrix();
             {
                 glTranslatef(pitStopX, yOffset, pitStopZ);
                 glRotatef(90, 0.0f, 0.0f, 1.0f);
-                drawPitStopMainBuilding(pitStopSize, themes[i]);  // 使用对应的主题
+                drawPitStopMainBuilding(pitStopSize, themes[i]);  // Use the corresponding theme
                 drawServiceArea(pitStopSize, themes[i]);
                 drawPitStopDecorations(pitStopSize, themes[i]);
             }
@@ -760,7 +758,7 @@ public class RaceTrack {
         }
     }
 
-    // 计算阴影投影矩阵的辅助方法
+    // Helper method to calculate the shadow projection matrix
     private FloatBuffer calculateShadowMatrix(float[] lightPos, float[] planeNormal) {
         float dot = lightPos[0] * planeNormal[0] +
                     lightPos[1] * planeNormal[1] +
@@ -789,14 +787,14 @@ public class RaceTrack {
         shadowMat[11] = -lightPos[3] * planeNormal[2];
         shadowMat[15] = dot - lightPos[3] * planeNormal[3];
         
-        // 创建直接缓冲区
+        // Create a direct buffer
         FloatBuffer shadowBuffer = BufferUtils.createFloatBuffer(16);
         shadowBuffer.put(shadowMat).flip();
         return shadowBuffer;
     }
 
     private void drawPitStopMainBuilding(float size, PitStopColors colors) {
-        // 主建筑
+        // Main building
         setMaterial(colors.mainColor, 128.0f, 0.4f);
         glPushMatrix();
         {
@@ -805,7 +803,7 @@ public class RaceTrack {
         }
         glPopMatrix();
         
-        // 屋顶
+        // Roof
         setMaterial(colors.roofColor, 96.0f, 0.3f);
         glPushMatrix();
         {
@@ -817,7 +815,7 @@ public class RaceTrack {
     }
 
     private void drawServiceArea(float size, PitStopColors colors) {
-        // 维修区地板
+        // Service area floor
         setMaterial(colors.serviceColor, 32.0f, 0.1f);
         glPushMatrix();
         {
@@ -827,7 +825,7 @@ public class RaceTrack {
         }
         glPopMatrix();
 
-        // 维修设备
+        // Service equipment
         setMaterial(colors.equipmentColor, 64.0f, 0.1f);
         for(int i = 0; i < 3; i++) {
             glPushMatrix();
@@ -844,7 +842,7 @@ public class RaceTrack {
     }
 
     private void drawPitStopDecorations(float size, PitStopColors colors) {
-        // 标志牌（亮红色带发光效果）
+        // Sign (bright red with glowing effect)
         setMaterial(colors.signColor, 128.0f, 0.5f);
         glPushMatrix();
         {
@@ -854,16 +852,16 @@ public class RaceTrack {
         }
         glPopMatrix();
         
-        // 环绕窗户（深灰色半透明）
+        // Surrounding windows (semi-transparent dark gray)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         setMaterial(colors.windowColor, 128.0f, 0.1f);
         
-        float windowHeight = size * 0.2f;  // 窗户带的高度
-        float windowZ = size * 0.25f;      // 窗户的z轴位置
-        float wallThickness = size * 0.02f; // 窗户厚度
+        float windowHeight = size * 0.2f;  // Window height
+        float windowZ = size * 0.25f;      // Window z-axis position
+        float wallThickness = size * 0.02f; // Window thickness
         
-        // 前面的窗户
+        // Front window
         glPushMatrix();
         {
             glTranslatef(0.0f, size * 0.4f, windowZ);
@@ -872,7 +870,7 @@ public class RaceTrack {
         }
         glPopMatrix();
         
-        // 后面的窗户
+        // Back window
         glPushMatrix();
         {
             glTranslatef(0.0f, -size * 0.4f, windowZ);
@@ -881,7 +879,7 @@ public class RaceTrack {
         }
         glPopMatrix();
         
-        // 左侧窗户
+        // Left window
         glPushMatrix();
         {
             glTranslatef(-size * 0.5f, 0.0f, windowZ);

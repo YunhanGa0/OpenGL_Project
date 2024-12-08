@@ -8,15 +8,15 @@ import java.nio.FloatBuffer;
 import org.lwjgl.BufferUtils;
 
 public class Car {
-    // 基础颜色定义
-    static float[] bodyColor = {1.0f, 0.0f, 0.0f, 1.0f};  // 鲜红色车身
-    static float[] wheelColor = {0.1f, 0.1f, 0.1f, 1.0f}; // 深黑色轮胎
-    static float[] wheelCapColor = {0.7f, 0.7f, 0.7f, 1.0f}; // 银色轮毂
-    static float[] windowColor = {0.3f, 0.3f, 0.8f, 0.5f}; // 半透明蓝色玻璃
-    static float[] headlightColor = {1.0f, 1.0f, 0.8f, 1.0f}; // 黄色前灯
-    static float[] taillightColor = {1.0f, 0.0f, 0.0f, 1.0f}; // 红色尾灯
-    static float[] bumperColor = {0.2f, 0.2f, 0.2f, 1.0f};    // 深灰色保险杠
-    static float[] spoilerColor = {0.1f, 0.1f, 0.1f, 1.0f};   // 黑色尾翼
+    // Basic color definitions
+    static float[] bodyColor = {1.0f, 0.0f, 0.0f, 1.0f};  // Bright red body
+    static float[] wheelColor = {0.1f, 0.1f, 0.1f, 1.0f}; // Deep black tires
+    static float[] wheelCapColor = {0.7f, 0.7f, 0.7f, 1.0f}; // Silver wheel hubs
+    static float[] windowColor = {0.3f, 0.3f, 0.8f, 0.5f}; // Semi-transparent blue glass
+    static float[] headlightColor = {1.0f, 1.0f, 0.8f, 1.0f}; // Yellow headlights
+    static float[] taillightColor = {1.0f, 0.0f, 0.0f, 1.0f}; // Red taillights
+    static float[] bumperColor = {0.2f, 0.2f, 0.2f, 1.0f};    // Dark grey bumper
+    static float[] spoilerColor = {0.1f, 0.1f, 0.1f, 1.0f};   // Black spoiler
 
     private Cube carBody;
     private Cylinder wheel;
@@ -25,7 +25,7 @@ public class Car {
     private Cube taillight;
     private Cube bumper;
     private Cube spoiler;
-    private float[] carColor;  // 添加颜色属性
+    private float[] carColor;  // Add color property
 
     public Car(float[] color) {
         this.carColor = color;
@@ -46,7 +46,7 @@ public class Car {
             glEnable(GL_COLOR_MATERIAL);
             glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
             
-            // 绘制车身主体
+            // Draw main car body
             glPushMatrix();
             {
                 glScalef(2.0f, 1.0f, 0.5f);
@@ -55,57 +55,57 @@ public class Car {
             }
             glPopMatrix();
 
-            // 绘制车顶 - 降低整体位置
+            // Draw car roof - lower overall position
             glPushMatrix();
             {
-                // 将z轴位置从0.6f降低到0.5f
+                // Lower z-axis position from 0.6f to 0.5f
                 glTranslatef(0.0f, 0.0f, 0.5f);
                 glScalef(1.2f, 0.72f, 0.32f);
                 
-                // 绘制前后倾斜的梯形框架
+                // Draw front and rear sloped frame
                 glPushMatrix();
                 {
-                    // 绘制前框架（梯形）
+                    // Draw front frame (trapezoid)
                     glBegin(GL_QUADS);
                     {
-                        // 设置材质颜色
+                        // Set material color
                         setMaterial(carColor, 128.0f);
                         
-                        // 前面
-                        glVertex3f(-1.4f, -1.4f, 0.0f);  // 左下
-                        glVertex3f(-1.4f, 1.4f, 0.0f);   // 右下
-                        glVertex3f(-0.8f, 0.8f, 1.4f);   // 右上
-                        glVertex3f(-0.8f, -0.8f, 1.4f);  // 左上
+                        // Front face
+                        glVertex3f(-1.4f, -1.4f, 0.0f);  // Bottom left
+                        glVertex3f(-1.4f, 1.4f, 0.0f);   // Bottom right
+                        glVertex3f(-0.8f, 0.8f, 1.4f);   // Top right
+                        glVertex3f(-0.8f, -0.8f, 1.4f);  // Top left
                         
-                        // 后面
-                        glVertex3f(1.4f, -1.4f, 0.0f);   // 左下
-                        glVertex3f(1.4f, 1.4f, 0.0f);    // 右下
-                        glVertex3f(0.8f, 0.8f, 1.4f);    // 右上
-                        glVertex3f(0.8f, -0.8f, 1.4f);   // 左上
+                        // Back face
+                        glVertex3f(1.4f, -1.4f, 0.0f);   // Bottom left
+                        glVertex3f(1.4f, 1.4f, 0.0f);    // Bottom right
+                        glVertex3f(0.8f, 0.8f, 1.4f);    // Top right
+                        glVertex3f(0.8f, -0.8f, 1.4f);   // Top left
                         
-                        // 顶面
-                        glVertex3f(-0.8f, -0.8f, 1.4f);  // 左前
-                        glVertex3f(-0.8f, 0.8f, 1.4f);   // 右前
-                        glVertex3f(0.8f, 0.8f, 1.4f);    // 右后
-                        glVertex3f(0.8f, -0.8f, 1.4f);   // 左后
+                        // Top face
+                        glVertex3f(-0.8f, -0.8f, 1.4f);  // Front left
+                        glVertex3f(-0.8f, 0.8f, 1.4f);   // Front right
+                        glVertex3f(0.8f, 0.8f, 1.4f);    // Back right
+                        glVertex3f(0.8f, -0.8f, 1.4f);   // Back left
                         
-                        // 底面
-                        glVertex3f(-1.4f, -1.4f, 0.0f);  // 左前
-                        glVertex3f(-1.4f, 1.4f, 0.0f);   // 右前
-                        glVertex3f(1.4f, 1.4f, 0.0f);    // 右后
-                        glVertex3f(1.4f, -1.4f, 0.0f);   // 左后
+                        // Bottom face
+                        glVertex3f(-1.4f, -1.4f, 0.0f);  // Front left
+                        glVertex3f(-1.4f, 1.4f, 0.0f);   // Front right
+                        glVertex3f(1.4f, 1.4f, 0.0f);    // Back right
+                        glVertex3f(1.4f, -1.4f, 0.0f);   // Back left
                     }
                     glEnd();
                 }
                 glPopMatrix();
                 
-                // 绘制主车顶（透明）- 缩小尺寸
+                // Draw main roof (transparent) - reduced size
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glPushMatrix();
                 {
                     glTranslatef(0.0f, 0.0f, 0.7f);
-                    glScalef(0.75f, 0.8f, 0.65f);  // 从1.6f, 1.6f, 1.8f缩小
+                    glScalef(0.75f, 0.8f, 0.65f);  // From 1.6f, 1.6f, 1.8f to 0.75f, 0.8f, 0.65f
                     setMaterial(windowColor, 128.0f);
                     carBody.drawCube();
                 }
@@ -115,7 +115,7 @@ public class Car {
             }
             glPopMatrix();
 
-            // 添加前保险杠
+            // Add front bumper
             glPushMatrix();
             {
                 glTranslatef(2.1f, 0.0f, -0.2f);
@@ -125,7 +125,7 @@ public class Car {
             }
             glPopMatrix();
 
-            // 添加后保险杠
+            // Add rear bumper
             glPushMatrix();
             {
                 glTranslatef(-2.1f, 0.0f, -0.2f);
@@ -135,10 +135,10 @@ public class Car {
             }
             glPopMatrix();
 
-            // 添加前车灯
+            // Add front headlights
             glPushMatrix();
             {
-                // 前灯
+                // Front headlights
                 glPushMatrix();
                 {
                     glTranslatef(2.0f, 0.4f, 0.0f);
@@ -148,7 +148,7 @@ public class Car {
                 }
                 glPopMatrix();
 
-                // 右前灯
+                // Right front headlights
                 glPushMatrix();
                 {
                     glTranslatef(2.0f, -0.4f, 0.0f);
@@ -160,10 +160,10 @@ public class Car {
             }
             glPopMatrix();
 
-            // 添加尾灯
+            // Add rear lights
             glPushMatrix();
             {
-                // 左尾灯
+                // Left rear lights
                 glPushMatrix();
                 {
                     glTranslatef(-2.0f, 0.4f, 0.0f);
@@ -173,7 +173,7 @@ public class Car {
                 }
                 glPopMatrix();
 
-                // 右尾灯
+                // Right rear lights
                 glPushMatrix();
                 {
                     glTranslatef(-2.0f, -0.4f, 0.0f);
@@ -185,7 +185,7 @@ public class Car {
             }
             glPopMatrix();
 
-            // 添加尾翼
+            // Add spoiler
             glPushMatrix();
             {
                 glTranslatef(-2.0f, 0.0f, 0.5f);
@@ -193,7 +193,7 @@ public class Car {
                 setMaterial(spoilerColor, 16.0f);
                 spoiler.drawCube();
                 
-                // 尾翼支架
+                // Spoiler mount
                 glPushMatrix();
                 {
                     glTranslatef(0.0f, 0.0f, -1.5f);
@@ -211,7 +211,7 @@ public class Car {
         glPopMatrix();
     }
 
-    // 辅助方法：设置材质
+    // Helper method: Set material properties
     private void setMaterial(float[] color, float shininess) {
         FloatBuffer ambient = BufferUtils.createFloatBuffer(4);
         ambient.put(new float[]{color[0]*0.3f, color[1]*0.3f, color[2]*0.3f, color[3]}).flip();
@@ -301,24 +301,24 @@ public class Car {
     }
 
     /**
-     * 计算赛车在赛道上的位置
-     * @param trackRadius 赛道半径
-     * @param angle 赛车当前角度
-     * @param bankingAngle 赛道倾斜角度
-     * @return float[] {x, y, z, rotation} 赛车的位置和旋转角度
+     * Calculate car position on track
+     * @param trackRadius Track radius
+     * @param angle Current car angle
+     * @param bankingAngle Track banking angle
+     * @return float[] {x, y, z, rotation} Car position and rotation angle
      */
     public float[] getPositionOnTrack(float trackRadius, float angle, float bankingAngle) {
         float[] position = new float[4];
         
-        // 计算赛车在赛道上的基本位置（x和y坐标）
-        position[0] = (float) (trackRadius * Math.cos(angle));  // x坐标
-        position[1] = (float) (trackRadius * Math.sin(angle));  // y坐标
+        // Calculate basic car position on track (x and y coordinates)
+        position[0] = (float) (trackRadius * Math.cos(angle));  // x coordinate
+        position[1] = (float) (trackRadius * Math.sin(angle));  // y coordinate
         
-        // 计算z坐标（考虑赛道倾斜）
+        // Calculate z coordinate (considering track banking)
         float distanceFromCenter = trackRadius;
         position[2] = (float) (Math.sin(bankingAngle) * distanceFromCenter);
         
-        // 计算赛车的旋转角度（使其朝向行驶方向）
+        // Calculate car rotation angle (to face driving direction)
         position[3] = (float) Math.toDegrees(angle) + 90;
         
         return position;
